@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
@@ -55,7 +56,7 @@ CREATE TABLE IF NOT EXISTS posts(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   title TEXT NOT NULL,
-  content TEXT NOT NULL,
+  body TEXT NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -72,7 +73,7 @@ CREATE TABLE IF NOT EXISTS comments(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   post_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
-  content TEXT NOT NULL,
+  body TEXT NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -88,7 +89,12 @@ CREATE TABLE IF NOT EXISTS likes(
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 `
+
 	if _, err := DB.Exec(schema); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := ensureBodyColumns(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -106,4 +112,71 @@ func CloseDB() {
 	if DB != nil {
 		_ = DB.Close()
 	}
+}
+
+func ensureBodyColumns() error {
+	if err := ensureColumn("posts", "body", "content"); err != nil {
+		return err
+	}
+	if err := ensureColumn("comments", "body", "content"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ensureColumn(table, want, legacy string) error {
+	exists, err := columnExists(table, want)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	if legacy != "" {
+		legacyExists, err := columnExists(table, legacy)
+		if err != nil {
+			return err
+		}
+		if legacyExists {
+			if _, err := DB.Exec(fmt.Sprintf(`ALTER TABLE %s RENAME COLUMN %s TO %s`, table, legacy, want)); err == nil {
+				return nil
+			}
+			if _, err := DB.Exec(fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s TEXT`, table, want)); err != nil {
+				return err
+			}
+			_, err = DB.Exec(fmt.Sprintf(`UPDATE %s SET %s = %s WHERE %s IS NULL`, table, want, legacy, want))
+			return err
+		}
+	}
+
+	_, err = DB.Exec(fmt.Sprintf(`ALTER TABLE %s ADD COLUMN %s TEXT`, table, want))
+	return err
+}
+
+func columnExists(table, column string) (bool, error) {
+	rows, err := DB.Query(fmt.Sprintf(`PRAGMA table_info(%s)`, table))
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			cid     int
+			name    string
+			ctype   string
+			notnull int
+			dflt    sql.NullString
+			pk      int
+		)
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk); err != nil {
+			return false, err
+		}
+		if name == column {
+			return true, nil
+		}
+	}
+
+	return false, rows.Err()
 }
