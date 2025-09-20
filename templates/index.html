@@ -99,8 +99,8 @@
     {{end}}
 
     <h2>Posts</h2>
-    {{if .Posts}}
-      {{range .Posts}}
+    {{if .Data}}
+      {{range .Data}}
         <div class="post" id="post-{{.ID}}">
           <h3>{{.Title}}</h3>
           <div class="muted">{{.CreatedAt}}</div>

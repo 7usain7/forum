@@ -8,46 +8,34 @@ import (
 	"forum/database"
 )
 
-func IndexHandler(w http.ResponseWriter, r *http.Request, name string) {
-	// if it's POST, create a post then redirect
-	if r.Method == http.MethodPost {
-		username := CurrentUsername(r)
-		if username == "" {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		title := r.FormValue("title")
-		body := r.FormValue("body")
-		if title == "" || body == "" {
-			http.Redirect(w, r, "/?err=empty", http.StatusSeeOther)
-			return
-		}
-
-		uid, err := getUserIDbyusername(username)
-		if err != nil {
-			http.Error(w, "user not found", http.StatusInternalServerError)
-			return
-		}
-
-		_, err = database.DB.Exec(
-			`INSERT INTO posts(user_id, title, body) VALUES (?, ?, ?)`,
-			uid, title, body,
-		)
-		if err != nil {
-			http.Error(w, "cannot create post", http.StatusInternalServerError)
-			return
-		}
-
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
-	// otherwise GET → render the page
-	file := "templates/" + name + ".html"
+// renderPage renders a template with common data
+func renderPage(w http.ResponseWriter, r *http.Request, templateName string, data any) {
+	file := "templates/" + templateName + ".html"
 	tpl, err := template.ParseFiles(file)
 	if err != nil {
 		http.Error(w, "template not found: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create base data structure
+	pageData := struct {
+		Username string
+		Data     any
+	}{
+		Username: CurrentUsername(r),
+		Data:     data,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := tpl.Execute(w, pageData); err != nil {
+		http.Error(w, "template error", http.StatusInternalServerError)
+	}
+}
+
+// IndexHandler handles GET requests for the index page
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		handleCreatePost(w, r)
 		return
 	}
 
@@ -57,18 +45,60 @@ func IndexHandler(w http.ResponseWriter, r *http.Request, name string) {
 		return
 	}
 
-	data := struct {
-		Username string
-		Posts    []Post
-	}{
-		Username: CurrentUsername(r),
-		Posts:    posts,
+	renderPage(w, r, "index", posts)
+}
+
+// handleCreatePost handles POST requests for creating posts
+func handleCreatePost(w http.ResponseWriter, r *http.Request) {
+	username := CurrentUsername(r)
+	if username == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tpl.Execute(w, data); err != nil {
-		http.Error(w, "template error", http.StatusInternalServerError)
+	title := r.FormValue("title")
+	body := r.FormValue("body")
+	if title == "" || body == "" {
+		http.Redirect(w, r, "/?err=empty", http.StatusSeeOther)
+		return
 	}
+
+	uid, err := getUserIDbyusername(username)
+	if err != nil {
+		http.Error(w, "user not found", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = database.DB.Exec(
+		`INSERT INTO posts(user_id, title, body) VALUES (?, ?, ?)`,
+		uid, title, body,
+	)
+	if err != nil {
+		http.Error(w, "cannot create post", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+// LoginHandler handles login page
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		LoginPOST(w, r)
+		return
+	}
+
+	renderPage(w, r, "login", nil)
+}
+
+// RegisterHandler handles user registration
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		RegisterPOST(w, r)
+		return
+	}
+
+	renderPage(w, r, "register", nil)
 }
 
 func CurrentUsername(r *http.Request) string {
