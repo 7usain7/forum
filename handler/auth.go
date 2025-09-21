@@ -53,11 +53,13 @@ func LoginPOST(w http.ResponseWriter, r *http.Request) {
 
 	var userID int
 	var hash string
+	invalidAuth := "Invalid username or password"
 
 	err := database.DB.QueryRow(`
 	SELECT id, password_hash FROM users WHERE username = ?`, username).Scan(&userID, &hash)
 	if err == sql.ErrNoRows {
-		http.Error(w, "wrong username or password", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		renderPage(w, r, "login", invalidAuth)
 		return
 	}
 	if err != nil {
@@ -65,7 +67,8 @@ func LoginPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
-		http.Error(w, "invalid username or password", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		renderPage(w, r, "login", invalidAuth)
 		return
 	}
 	sessionid, err := randomHex(32)
