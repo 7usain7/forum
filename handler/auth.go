@@ -14,13 +14,16 @@ import (
 func RegisterPOST(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		renderPage(w, r, "error", BadRequest)
+		return
 	}
 	email := r.FormValue("email")
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	if email == "" || username == "" || password == "" {
-		http.Error(w, "missing fields", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		renderPage(w, r, "error", BadRequest)
 		return
 	}
 	//password hashing
@@ -41,13 +44,15 @@ func RegisterPOST(w http.ResponseWriter, r *http.Request) {
 
 func LoginPOST(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "bad form", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		renderPage(w, r, "error", BadRequest)
 		return
 	}
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	if username == "" || password == "" {
-		http.Error(w, "missing fields", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		renderPage(w, r, "error", BadRequest)
 		return
 	}
 
