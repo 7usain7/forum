@@ -1,11 +1,10 @@
 package handler
 
 import (
+	"forum/database"
 	"html/template"
 	"net/http"
 	"time"
-
-	"forum/database"
 )
 
 // renderPage renders a template with common data
