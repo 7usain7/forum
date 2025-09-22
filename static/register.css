@@ -41,3 +41,7 @@ a {
   color: #06f;
   text-decoration: none;
 }
+
+.error {
+  color: red;
+}
