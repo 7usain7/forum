@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"forum/database"
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -34,12 +35,20 @@ func RegisterPOST(w http.ResponseWriter, r *http.Request) {
 		renderPage(w, r, "error", InternalServerError)
 		return
 	}
+
 	_, err = database.DB.Exec(`
 	INSERT INTO users(email,username,password_hash)
 	VALUES (?,?,?)`, email, username, string(hash))
 	if err != nil {
 		w.WriteHeader(http.StatusConflict)
-		renderPage(w, r, "error", Conflict) // I WILL RETURN TO IT LATER
+		if strings.Contains(err.Error(), "users.email") {
+			renderPage(w, r, "register", "Email already in use")
+			return
+		} else if strings.Contains(err.Error(), "users.username") {
+			renderPage(w, r, "register", "Username already in use")
+			return
+		}
+		renderPage(w, r, "error", Conflict)
 		return
 	}
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
