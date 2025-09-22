@@ -29,14 +29,17 @@ func RegisterPOST(w http.ResponseWriter, r *http.Request) {
 	//password hashing
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		http.Error(w, "Server Error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to hash password: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 	_, err = database.DB.Exec(`
 	INSERT INTO users(email,username,password_hash)
 	VALUES (?,?,?)`, email, username, string(hash))
 	if err != nil {
-		http.Error(w, "email or username already taken", http.StatusConflict)
+		w.WriteHeader(http.StatusConflict)
+		renderPage(w, r, "error", Conflict) // I WILL RETURN TO IT LATER
 		return
 	}
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -44,8 +47,9 @@ func RegisterPOST(w http.ResponseWriter, r *http.Request) {
 
 func LoginPOST(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		renderPage(w, r, "error", BadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to parse form: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 	username := r.FormValue("username")
@@ -68,7 +72,9 @@ func LoginPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		http.Error(w, "Server Error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "database error during login: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 	if bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
@@ -78,7 +84,9 @@ func LoginPOST(w http.ResponseWriter, r *http.Request) {
 	}
 	sessionid, err := randomHex(32)
 	if err != nil {
-		http.Error(w, "failed generating session id", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to generate session ID: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 	expires := time.Now().Add(24 * time.Hour)
@@ -86,7 +94,9 @@ func LoginPOST(w http.ResponseWriter, r *http.Request) {
 	_, err = database.DB.Exec(`
 	INSERT INTO sessions(id, user_id,expires_at) VALUES(?,?,?)`, sessionid, userID, expires.UTC())
 	if err != nil {
-		http.Error(w, "server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to create session: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
@@ -104,7 +114,8 @@ func LoginPOST(w http.ResponseWriter, r *http.Request) {
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		renderPage(w, r, "error", MethodNotAllowed)
 		return
 	}
 
