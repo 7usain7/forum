@@ -12,7 +12,9 @@ func renderPage(w http.ResponseWriter, r *http.Request, templateName string, dat
 	file := "templates/" + templateName + ".html"
 	tpl, err := template.ParseFiles(file)
 	if err != nil {
-		http.Error(w, "template not found: "+err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to parse template: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 
@@ -40,7 +42,9 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := fetchPostsWithComments()
 	if err != nil {
-		http.Error(w, "load posts error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to fetch posts: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 
@@ -64,7 +68,9 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	uid, err := getUserIDbyusername(username)
 	if err != nil {
-		http.Error(w, "user not found", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to get user ID: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 
@@ -73,7 +79,9 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 		uid, title, body,
 	)
 	if err != nil {
-		http.Error(w, "cannot create post", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to create post: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 
@@ -96,7 +104,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		RegisterPOST(w, r)
 		return
 	}
-
 	renderPage(w, r, "register", nil)
 }
 

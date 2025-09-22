@@ -1,5 +1,11 @@
 package handler
 
+import (
+	"fmt"
+	"os"
+	"time"
+)
+
 type HTTPError struct {
 	Code    int
 	Title   string
@@ -24,3 +30,21 @@ var (
 	Conflict            = NewHTTPError(409, "Conflict", "There was a conflict with your request. Please try again.")
 	InternalServerError = NewHTTPError(500, "Internal Server Error", "An unexpected error occurred on the server. Please try again later.")
 )
+
+// log file for errors
+func WriteErrorLog(filename, errorMessage string) error {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open log file: %w", err)
+	}
+	defer file.Close()
+
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
+	logEntry := fmt.Sprintf("[%s] ERROR: %s\n", timestamp, errorMessage)
+
+	if _, err := file.WriteString(logEntry); err != nil {
+		return fmt.Errorf("failed to write to log file: %w", err)
+	}
+
+	return nil
+}
