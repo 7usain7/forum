@@ -1,71 +1,97 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <title>Forum — Home</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
-  <header><strong>Forum</strong></header>
-  <main>
+  <header>
+    <strong>Forum</strong>
 
     {{if .Username}}
-      <h1>Hi, {{.Username}} 👋</h1>
-      <form method="post" action="/logout">
-        <button type="submit">Logout</button>
-      </form>
-
-      <!-- create post form -->
-      <h2>Create a new post</h2>
-      <form method="POST" action="/">
-        <input type="text" name="title" placeholder="Title">
-        <textarea name="body" placeholder="Write your post..."></textarea>
-        <button type="submit">Publish</button>
-      </form>
+    <!-- Logout button -->
+    <form method="post" action="/logout" class="logout-form">
+      <button type="submit">Logout</button>
+    </form>
     {{else}}
-      <h1>Welcome</h1>
-      <p>Please login or register to continue.</p>
-      <p>
-        <a class="btn" href="/login">Login</a>
-        <a class="btn primary" href="/register">Register</a>
-      </p>
+    <!-- Login/Register buttons -->
+    <div class="auth-links">
+      <a class="btn" href="/login">Login</a>
+      <a class="btn primary" href="/register">Register</a>
+    </div>
+    {{end}}
+  </header>
+
+  <main>
+    {{if .Username}}
+    <h1>Hi, {{.Username}} 👋</h1>
+
+    <!-- create post form -->
+    <h2>Create a new post</h2>
+    <!-- <form method="POST" action="/">
+      <input type="text" name="title" placeholder="Title">
+      <textarea name="body" placeholder="Write your post..."></textarea>
+      <button type="submit">Publish</button>
+    </form> -->
+
+
+    <a href="#new-post" class="btn primary">+ New Post</a>
+    <!-- Create post popup container -->
+    <div id="new-post" class="modal">
+      <div class="modal-content">
+        <h2>Create a new post</h2>
+        <form method="POST" action="/">
+          <input type="text" name="title" placeholder="Title">
+          <textarea name="body" placeholder="Write your post..."></textarea>
+          <button type="submit">Publish</button>
+        </form>
+        <a href="#" class="close">Close</a>
+      </div>
+    </div>
+
+    {{else}}
+    <h1>Welcome</h1>
+    <p>Please login or register to continue.</p>
     {{end}}
 
     <h2>Posts</h2>
     {{if .Data}}
-      {{range .Data}}
-        <div class="post" id="post-{{.ID}}">
-          <h3>{{.Title}}</h3>
+    {{range .Data}}
+    <div class="post" id="post-{{.ID}}">
+      <h3>{{.Title}}</h3>
+      <div class="muted">{{.CreatedAt}}</div>
+      <p>{{.Body}}</p>
+
+      <div class="comments">
+        <div class="muted">Comments</div>
+        {{if .Comments}}
+        {{range .Comments}}
+        <div class="comment">
           <div class="muted">{{.CreatedAt}}</div>
-          <p>{{.Body}}</p>
-
-          <div class="comments">
-            <div class="muted">Comments</div>
-            {{if .Comments}}
-              {{range .Comments}}
-                <div class="comment">
-                  <div class="muted">{{.CreatedAt}}</div>
-                  <div>{{.Body}}</div>
-                </div>
-              {{end}}
-            {{else}}
-              <div class="muted">No comments yet.</div>
-            {{end}}
-
-            {{if $.Username}}
-            <form method="POST" action="/comment">
-              <input type="hidden" name="post_id" value="{{.ID}}">
-              <textarea name="body" placeholder="Write a comment..."></textarea>
-              <button type="submit">Add Comment</button>
-            </form>
-            {{end}}
-          </div>
+          <div>{{.Body}}</div>
         </div>
-      {{end}}
-    {{else}}
-      <p>No posts yet.</p>
-    {{end}}
+        {{end}}
+        {{else}}
+        <div class="muted">No comments yet.</div>
+        {{end}}
 
+        {{if $.Username}}
+        <form method="POST" action="/comment">
+          <input type="hidden" name="post_id" value="{{.ID}}">
+          <textarea name="body" placeholder="Write a comment..."></textarea>
+          <button type="submit">Add Comment</button>
+        </form>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+    {{else}}
+    <p>No posts yet.</p>
+    {{end}}
   </main>
 </body>
+
 </html>
