@@ -123,3 +123,42 @@ input[type="text"] {
   text-decoration: none;
   color: #333;
 }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.chip {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  cursor: pointer;
+  user-select: none;
+  background: #f5f5f5;
+  transition: all 0.2s ease;
+  font-size: 0.9em;
+}
+
+/* hide the checkbox */
+.chip input {
+  display: none;
+}
+
+.chip:hover {
+  background: #eaeaea;
+  border-color: #999;
+}
+
+.chip:has(input:checked) {
+  background: #318aff;
+  color: #fff;
+  border-color: #0000;
+}
+
+.chip:has(input:checked):hover {
+  background: #0063e6;
+}
