@@ -31,12 +31,6 @@
 
     <!-- create post form -->
     <h2>Create a new post</h2>
-    <!-- <form method="POST" action="/">
-      <input type="text" name="title" placeholder="Title">
-      <textarea name="body" placeholder="Write your post..."></textarea>
-      <button type="submit">Publish</button>
-    </form> -->
-
 
     <a href="#new-post" class="btn primary">+ New Post</a>
     <!-- Create post popup container -->
@@ -46,6 +40,27 @@
         <form method="POST" action="/">
           <input type="text" name="title" placeholder="Title">
           <textarea name="body" placeholder="Write your post..."></textarea>
+
+          <!-- Category chips -->
+          <div class="chips">
+            <label class="chip">
+              <input type="checkbox" name="categories" value="General">
+              <span>General</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="categories" value="Questions">
+              <span>Questions</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="categories" value="Gaming">
+              <span>Gaming</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="categories" value="Coding">
+              <span>Programming</span>
+            </label>
+          </div>
+
           <button type="submit">Publish</button>
         </form>
         <a href="#" class="close">Close</a>
