@@ -37,12 +37,20 @@
     <div id="new-post" class="modal">
       <div class="modal-content">
         <h2>Create a new post</h2>
-        <form method="POST" action="/">
+        <form method="POST" action="/" class="create-post-form">
           <input type="text" name="title" placeholder="Title">
           <textarea name="body" placeholder="Write your post..."></textarea>
-
-          <!-- Category chips -->
+          <!-- Category chips from database -->
           <div class="chips">
+            {{if .Data.Categories}}
+            {{range .Data.Categories}}
+            <label class="chip">
+              <input type="checkbox" name="categories" value="{{.Name}}">
+              <span>{{.Name}}</span>
+            </label>
+            {{end}}
+            {{else}}
+            <!-- Fallback if no categories exist -->
             <label class="chip">
               <input type="checkbox" name="categories" value="General">
               <span>General</span>
@@ -56,14 +64,15 @@
               <span>Gaming</span>
             </label>
             <label class="chip">
-              <input type="checkbox" name="categories" value="Coding">
+              <input type="checkbox" name="categories" value="Programming">
               <span>Programming</span>
             </label>
+            {{end}}
           </div>
 
           <button type="submit">Publish</button>
         </form>
-        <a href="#" class="close">Close</a>
+        <a href="#" class="close-btn">X Close</a>
       </div>
     </div>
 
@@ -73,15 +82,24 @@
     {{end}}
 
     <h2>Posts</h2>
-    {{if .Data}}
-    {{range .Data}}
+    {{if .Data.Posts}}
+    {{range .Data.Posts}}
     <div class="post" id="post-{{.ID}}">
       <h3>{{.Title}}</h3>
       <div class="muted">{{.CreatedAt}}</div>
       <p>{{.Body}}</p>
+      <!-- Display categories-->
+      {{if .Categories}}
+      <div class="categories">
+        {{range .Categories}}
+        <span class="chip">{{.Name}}</span>
+        {{end}}
+      </div>
+      {{end}}
 
       <div class="comments">
-        <div class="muted">Comments</div>
+        <div class="comments-title muted">Comments</div>
+
         {{if .Comments}}
         {{range .Comments}}
         <div class="comment">
@@ -94,13 +112,14 @@
         {{end}}
 
         {{if $.Username}}
-        <form method="POST" action="/comment">
+        <form method="POST" action="/comment" class="comment-form">
           <input type="hidden" name="post_id" value="{{.ID}}">
           <textarea name="body" placeholder="Write a comment..."></textarea>
           <button type="submit">Add Comment</button>
         </form>
         {{end}}
       </div>
+
     </div>
     {{end}}
     {{else}}
