@@ -10,21 +10,25 @@ type Category struct {
 }
 
 type Post struct {
-	ID         int
-	UserID     int
-	Title      string
-	Body       string
-	CreatedAt  string
-	Comments   []Comment
-	Categories []Category
+	ID           int
+	UserID       int
+	Title        string
+	Body         string
+	CreatedAt    string
+	Comments     []Comment
+	Categories   []Category
+	LikeCount    int // total likes
+	DislikeCount int // optional, for like_type = -1
 }
 
 type Comment struct {
-	ID        int
-	PostID    int
-	UserID    int
-	Body      string
-	CreatedAt string
+	ID           int
+	PostID       int
+	UserID       int
+	Body         string
+	CreatedAt    string
+	LikeCount    int
+	DislikeCount int
 }
 
 func getUserIDbyusername(username string) (int, error) {
@@ -53,6 +57,7 @@ func fetchPostsWithComments() ([]Post, error) {
 	}
 
 	for i := range posts {
+		// --- Comments ---
 		cr, err := database.DB.Query(`
             SELECT id, post_id, user_id, body, created_at
             FROM comments
@@ -73,17 +78,15 @@ func fetchPostsWithComments() ([]Post, error) {
 		cr.Close()
 		posts[i].Comments = cs
 
-		// Post categories fetch
+		// --- Categories ---
 		categorieRow, err := database.DB.Query(`
             SELECT c.id, c.name 
             FROM categories c
             JOIN post_categories pc ON c.id = pc.category_id
             WHERE pc.post_id = ?`, posts[i].ID)
-
 		if err != nil {
 			return nil, err
 		}
-
 		var categories []Category
 		for categorieRow.Next() {
 			var categ Category
@@ -95,7 +98,34 @@ func fetchPostsWithComments() ([]Post, error) {
 		}
 		categorieRow.Close()
 		posts[i].Categories = categories
+
+		// --- Post Likes ---
+		err = database.DB.QueryRow(`
+            SELECT 
+                COALESCE(SUM(CASE WHEN like_type = 1 THEN 1 ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN like_type = -1 THEN 1 ELSE 0 END), 0)
+            FROM likes
+            WHERE target_type = 'post' AND target_id = ?`, posts[i].ID).
+			Scan(&posts[i].LikeCount, &posts[i].DislikeCount)
+		if err != nil {
+			return nil, err
+		}
+
+		// --- Comment Likes ---
+		for j := range posts[i].Comments {
+			err = database.DB.QueryRow(`
+                SELECT 
+                    COALESCE(SUM(CASE WHEN like_type = 1 THEN 1 ELSE 0 END), 0),
+                    COALESCE(SUM(CASE WHEN like_type = -1 THEN 1 ELSE 0 END), 0)
+                FROM likes
+                WHERE target_type = 'comment' AND target_id = ?`, posts[i].Comments[j].ID).
+				Scan(&posts[i].Comments[j].LikeCount, &posts[i].Comments[j].DislikeCount)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
+
 	return posts, nil
 }
 

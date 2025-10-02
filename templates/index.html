@@ -88,6 +88,7 @@
       <h3>{{.Title}}</h3>
       <div class="muted">{{.CreatedAt}}</div>
       <p>{{.Body}}</p>
+
       <!-- Display categories-->
       {{if .Categories}}
       <div class="categories">
@@ -97,6 +98,21 @@
       </div>
       {{end}}
 
+      <!-- Likes -->
+      <div class="likes">
+        {{if $.Username}}
+        <form method="POST" action="/like" class="like-form">
+          <input type="hidden" name="target_type" value="post">
+          <input type="hidden" name="target_id" value="{{.ID}}">
+          <button type="submit" name="like_type" value="1">👍 ({{.LikeCount}})</button>
+          <button type="submit" name="like_type" value="-1">👎 ({{.DislikeCount}})</button>
+        </form>
+        {{else}}
+        <div class="muted">👍 {{.LikeCount}} | 👎 {{.DislikeCount}}</div>
+        {{end}}
+      </div>
+
+      <!-- Comments -->
       <div class="comments">
         <div class="comments-title muted">Comments</div>
 
@@ -105,6 +121,20 @@
         <div class="comment">
           <div class="muted">{{.CreatedAt}}</div>
           <div>{{.Body}}</div>
+
+          <!-- Comment likes -->
+          <div class="likes">
+            {{if $.Username}}
+            <form method="POST" action="/like" class="like-form">
+              <input type="hidden" name="target_type" value="comment">
+              <input type="hidden" name="target_id" value="{{.ID}}">
+              <button type="submit" name="like_type" value="1">👍 ({{.LikeCount}})</button>
+              <button type="submit" name="like_type" value="-1">👎 ({{.DislikeCount}})</button>
+            </form>
+            {{else}}
+            <div class="muted">👍 {{.LikeCount}} | 👎 {{.DislikeCount}}</div>
+            {{end}}
+          </div>
         </div>
         {{end}}
         {{else}}

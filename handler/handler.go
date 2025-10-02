@@ -199,3 +199,40 @@ func CurrentUsername(r *http.Request) string {
 	}
 	return username
 }
+
+func HandleLike(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	username := CurrentUsername(r) // you already have session logic
+	if username == "" {
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	userID, err := getUserIDbyusername(username)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
+	}
+
+	targetType := r.FormValue("target_type") // "post" or "comment"
+	targetID := r.FormValue("target_id")
+	likeType := r.FormValue("like_type") // "1" for like, "-1" for dislike
+
+	_, err = database.DB.Exec(`
+        INSERT INTO likes (user_id, target_type, target_id, like_type)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(user_id, target_type, target_id)
+        DO UPDATE SET like_type = excluded.like_type
+    `, userID, targetType, targetID, likeType)
+
+	if err != nil {
+		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
