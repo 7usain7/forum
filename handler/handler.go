@@ -48,6 +48,28 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check for filter parameters
+	filter := r.URL.Query().Get("sort")
+
+	if filter != "" {
+		switch filter {
+		case "newest", "oldest":
+			posts, err = filterByCreationDate(filter)
+		case "most_popular", "least_popular":
+			posts, err = filterByPopularity(filter)
+		case "most_liked":
+			posts, err = filterBymostliked()
+		default:
+			// Invalid filter, ignore or handle as needed
+		}
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			WriteErrorLog("error.log", "failed to filter posts: "+err.Error())
+			renderPage(w, r, "error", InternalServerError)
+			return
+		}
+	}
+
 	// Fetch categories for the form
 	categories, err := fetchAllCategories()
 	if err != nil {
@@ -63,11 +85,13 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Posts      []Post
 		Categories []Category
+		Filter     string
 		Error      string
 	}{
 		Posts:      posts,
 		Categories: categories,
 		Error:      errorType,
+		Filter:     filter,
 	}
 
 	renderPage(w, r, "index", data)
