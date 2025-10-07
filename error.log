@@ -38,3 +38,5 @@
 [2025-10-02 18:14:12] ERROR: failed to fetch posts: no such column: post_id
 [2025-10-02 18:14:37] ERROR: failed to fetch posts: no such column: post_id
 [2025-10-02 18:14:37] ERROR: failed to fetch posts: no such column: post_id
+[2025-10-07 17:22:48] ERROR: failed to parse template: template: index.html:89: function "selected" not defined
+[2025-10-07 17:22:48] ERROR: failed to parse template: template: index.html:89: function "selected" not defined
