@@ -41,6 +41,12 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.URL.Path != "/" {
+		w.WriteHeader(http.StatusNotFound)
+		renderPage(w, r, "error", NotFound)
+		return
+	}
+
 	posts, err := fetchPostsWithComments()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -264,6 +270,10 @@ func HandleLike(w http.ResponseWriter, r *http.Request) {
 
 func SubforumHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
+	if path == "/r/" || path == "/r" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	// Expecting path like /r/{subforum}
 	parts := strings.Split(path, "/")
 	if len(parts) < 3 || parts[1] != "r" || parts[2] == "" {
@@ -274,7 +284,52 @@ func SubforumHandler(w http.ResponseWriter, r *http.Request) {
 	renderSubforum(w, r, subforum)
 }
 
-func renderSubforum(w http.ResponseWriter, r *http.Request, subreddit string) {
-	// TODO: Query posts for this subforum and render the page
-	renderPage(w, r, "subreddit", subreddit)
+func renderSubforum(w http.ResponseWriter, r *http.Request, subforum string) {
+	posts, err := fetchPostsWithComments()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to fetch posts: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
+		return
+	}
+
+	// Filter posts by subforum (category)
+	var filteredPosts []Post
+	for _, post := range posts {
+		for _, cat := range post.Categories {
+			if strings.EqualFold(cat.Name, subforum) {
+				filteredPosts = append(filteredPosts, post)
+				break
+			}
+		}
+	}
+
+	// Fetch categories for the form
+	categories, err := fetchAllCategories()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to fetch categories: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
+		return
+	}
+
+	// Check for error parameters in URL
+	errorType := r.URL.Query().Get("error")
+	filter := r.URL.Query().Get("sort")
+
+	data := struct {
+		Posts      []Post
+		Categories []Category
+		Filter     string
+		Error      string
+		Subforum   string
+	}{
+		Posts:      filteredPosts,
+		Categories: categories,
+		Filter:     filter,
+		Error:      errorType,
+		Subforum:   subforum,
+	}
+
+	renderPage(w, r, "index", data)
 }
