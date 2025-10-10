@@ -19,33 +19,21 @@ func filterByCreationDate(order string) ([]Post, error) {
 	return posts, nil
 }
 
-func filterByPopularity(order string) ([]Post, error) {
+func filterByPopularity() ([]Post, error) {
 	posts, err := fetchPostsWithComments()
 	if err != nil {
 		return nil, err
 	}
-	switch order {
-	case "most_popular":
-		// Sort posts by number of comments (descending order)
-		for i := 0; i < len(posts)-1; i++ {
-			for j := 0; j < len(posts)-i-1; j++ {
-				if len(posts[j].Comments) < len(posts[j+1].Comments) {
-					posts[j], posts[j+1] = posts[j+1], posts[j]
-				}
+
+	// Sort posts by number of comments (descending order)
+	for i := 0; i < len(posts)-1; i++ {
+		for j := 0; j < len(posts)-i-1; j++ {
+			if len(posts[j].Comments) < len(posts[j+1].Comments) {
+				posts[j], posts[j+1] = posts[j+1], posts[j]
 			}
 		}
-		return posts, nil
-	case "least_popular":
-		// Sort posts by number of comments (ascending order)
-		for i := 0; i < len(posts)-1; i++ {
-			for j := 0; j < len(posts)-i-1; j++ {
-				if len(posts[j].Comments) > len(posts[j+1].Comments) {
-					posts[j], posts[j+1] = posts[j+1], posts[j]
-				}
-			}
-		}
-		return posts, nil
 	}
+
 	return posts, nil
 }
 
