@@ -17,6 +17,7 @@ func main() {
 	http.HandleFunc("/login", handler.LoginHandler)
 	http.HandleFunc("/register", handler.RegisterHandler)
 	http.HandleFunc("/logout", handler.LogoutHandler)
+	http.HandleFunc("/r/", handler.SubforumHandler)
 
 	// Static files
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))

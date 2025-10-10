@@ -85,11 +85,10 @@
     <form method="get" class="sort-form">
       <label for="sort" class="sort-label">Sort by:</label>
       <select name="sort" id="sort" class="sort-select">
-        <option value="most-liked" {{if eq .Data.Filter "most-liked" }} selected{{end}}>Most Liked</option>
+        <option value="most-liked" {{if eq .Data.Filter "most-liked" }} selected{{end}}>Top</option>
+        <option value="most-popular" {{if eq .Data.Filter "most-popular" }} selected{{end}}>Hot</option>
         <option value="newest" {{if eq .Data.Filter "newest" }} selected{{end}}>Newest</option>
         <option value="oldest" {{if eq .Data.Filter "oldest" }} selected{{end}}>Oldest</option>
-        <option value="most-popular" {{if eq .Data.Filter "most-popular" }} selected{{end}}>Most popular</option>
-        <option value="least-popular" {{if eq .Data.Filter "least-popular" }} selected{{end}}>Least Popular</option>
       </select>
       <input type="submit" value="Apply" class="sort-submit">
     </form>

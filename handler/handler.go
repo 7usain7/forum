@@ -4,6 +4,7 @@ import (
 	"forum/database"
 	"html/template"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -55,8 +56,8 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		switch filter {
 		case "newest", "oldest":
 			posts, err = filterByCreationDate(filter)
-		case "most_popular", "least_popular":
-			posts, err = filterByPopularity(filter)
+		case "most_popular":
+			posts, err = filterByPopularity()
 		case "most_liked":
 			posts, err = filterBymostliked()
 		default:
@@ -259,4 +260,21 @@ func HandleLike(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func SubforumHandler(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	// Expecting path like /r/{subforum}
+	parts := strings.Split(path, "/")
+	if len(parts) < 3 || parts[1] != "r" || parts[2] == "" {
+		http.NotFound(w, r)
+		return
+	}
+	subforum := parts[2]
+	renderSubforum(w, r, subforum)
+}
+
+func renderSubforum(w http.ResponseWriter, r *http.Request, subreddit string) {
+	// TODO: Query posts for this subforum and render the page
+	renderPage(w, r, "subreddit", subreddit)
 }
