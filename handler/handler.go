@@ -270,6 +270,16 @@ func HandleLike(w http.ResponseWriter, r *http.Request) {
 
 func SubforumHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
+	if r.Method == http.MethodPost {
+		category := r.FormValue("category")
+		if category != "" {
+			http.Redirect(w, r, "/r/"+category, http.StatusSeeOther)
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	if path == "/r/" || path == "/r" {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
