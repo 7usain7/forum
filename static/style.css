@@ -230,6 +230,7 @@ form {
 }
 
 .chip {
+  color: black;
   display: inline-block;
   padding: 6px 12px;
   border: 1px solid #ccc;
@@ -262,7 +263,6 @@ form {
 }
 
 .categories .chip {
-  cursor: default; /* Not clickable in posts */
   background: #f0f0f0;
   border-color: #ddd;
 }
