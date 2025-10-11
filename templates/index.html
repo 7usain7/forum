@@ -9,7 +9,7 @@
 
 <body>
   <header>
-    <strong>Forum</strong>
+    <a href="/" style="color: black;"> <strong>Forum</strong> </a>
 
     {{if .Username}}
     <!-- Logout button -->
@@ -103,7 +103,7 @@
       {{if .Categories}}
       <div class="categories">
         {{range .Categories}}
-        <span class="chip">{{.Name}}</span>
+        <a href="/r/{{.Name}}"> <span class="chip">{{.Name}}</span> </a>
         {{end}}
       </div>
       {{end}}
