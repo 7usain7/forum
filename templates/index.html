@@ -11,10 +11,10 @@
   <header>
     <a href="/" style="color: black;"> <strong>Forum</strong> </a>
 
-    <!-- Category dropdown in the middle of the header (POST and redirect) -->
-    <div style="display: inline-block; margin-left: 20px;">
-      <form method="post" action="/r/" id="category-form">
-        <select name="category">
+    <!-- Category dropdown -->
+    <div>
+      <form method="post" action="/r/" class="category-form">
+        <select name="category" class="category-select">
           <option value="">Select Category</option>
           {{if .Data.Categories}}
           {{range .Data.Categories}}
@@ -22,7 +22,7 @@
           {{end}}
           {{end}}
         </select>
-        <input type="submit" value="Go">
+        <input class="category-submit" type="submit" value="Go">
       </form>
     </div>
 
@@ -31,7 +31,7 @@
       <button type="submit">Logout</button>
     </form>
     {{else}}
-    <div class="auth-links" style="float: right;">
+    <div class="auth-links">
       <a class="btn" href="/login">Login</a>
       <a class="btn primary" href="/register">Register</a>
     </div>
@@ -94,9 +94,8 @@
     <p>Please login or register to continue.</p>
     {{end}}
 
-    <h2>Posts</h2>
+    <h2 style="margin-bottom: 0px;">Posts</h2>
     <form method="get" class="sort-form">
-      <label for="sort" class="sort-label">Sort by:</label>
       <select name="sort" id="sort" class="sort-select">
         <option value="most-liked" {{if eq .Data.Filter "most-liked" }} selected{{end}}>Top</option>
         <option value="most-popular" {{if eq .Data.Filter "most-popular" }} selected{{end}}>Hot</option>
@@ -116,7 +115,7 @@
       {{if .Categories}}
       <div class="categories">
         {{range .Categories}}
-        <a href="/r/{{.Name}}"> <span class="chip">{{.Name}}</span> </a>
+        <a href="/r/{{.Name}}"><span class="chip">{{.Name}}</span></a>
         {{end}}
       </div>
       {{end}}

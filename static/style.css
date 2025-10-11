@@ -5,7 +5,7 @@ body {
 }
 
 header {
-  padding: 12px 16px;
+  padding: 0px 16px;
   border-bottom: 1px solid #eee;
   background: #fff;
   position: sticky;
@@ -47,21 +47,17 @@ button {
   cursor: pointer;
 }
 
-.sort-form {
-  background-color: #919191;
-  padding: 15px;
-  border-radius: 8px;
+.sort-form, .category-form {
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #f0f0f0;
+  color: black;
+  font-size: 15px;
   display: inline-block;
   font-family: Arial, sans-serif;
 }
 
-.sort-label {
-  color: white;
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-.sort-select {
+.sort-select, .category-select {
   background-color: white;
   color: #333;
   padding: 8px 12px;
@@ -71,12 +67,12 @@ button {
   font-size: 14px;
 }
 
-.sort-select:hover {
-  border-color: #999;
+.sort-select:hover, .category-select:hover {
+  background: #f3f3f3;
   cursor: pointer;
 }
 
-.sort-submit {
+.sort-submit, .category-submit {
   background-color: #000;
   color: white;
   border: 1px solid #666;
