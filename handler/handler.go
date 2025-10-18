@@ -231,6 +231,47 @@ func CurrentUsername(r *http.Request) string {
 	return username
 }
 
+func CommentHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	// Get username from session (you likely already have this helper)
+	username := getUsernameFromSession(r)
+	if username == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	// Convert username → user_id
+	userID, err := getUserIDbyusername(username)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusInternalServerError)
+		return
+	}
+
+	postID := r.FormValue("post_id")
+	body := strings.TrimSpace(r.FormValue("body"))
+
+	if body == "" || postID == "" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	// Insert comment
+	_, err = database.DB.Exec(`
+		INSERT INTO comments (post_id, user_id, body, created_at)
+		VALUES (?, ?, ?, datetime('now'))
+	`, postID, userID, body)
+	if err != nil {
+		http.Error(w, "Failed to save comment: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
 func HandleLike(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

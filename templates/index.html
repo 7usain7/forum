@@ -34,9 +34,6 @@
   <!-- Main layout grid -->
   <div class="layout-grid">
     <!-- Sidebar -->
-    <input type="checkbox" id="sidebar-toggle" class="sidebar-checkbox">
-
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-content">
         <form method="post" action="/r/" class="category-form">
@@ -49,7 +46,6 @@
             {{end}}
             {{end}}
           </select>
-          <!-- <input class="category-submit" type="submit" value="Go"> -->
         </form>
       </div>
 
@@ -75,8 +71,9 @@
             <div class="modal-content">
               <h2>Create a new post</h2>
               <form method="POST" action="/" class="create-post-form">
-                <input type="text" name="title" placeholder="Title">
-                <textarea name="body" placeholder="Write your post..."></textarea>
+                <input type="text" name="title" placeholder="Title" required>
+                <textarea name="body" placeholder="Write your post..." required></textarea>
+
                 <!-- Category chips from database -->
                 <div class="chips">
                   {{if .Data.Categories}}
@@ -87,22 +84,14 @@
                   </label>
                   {{end}}
                   {{else}}
-                  <label class="chip">
-                    <input type="checkbox" name="categories" value="General">
-                    <span>General</span>
-                  </label>
-                  <label class="chip">
-                    <input type="checkbox" name="categories" value="Questions">
-                    <span>Questions</span>
-                  </label>
-                  <label class="chip">
-                    <input type="checkbox" name="categories" value="Gaming">
-                    <span>Gaming</span>
-                  </label>
-                  <label class="chip">
-                    <input type="checkbox" name="categories" value="Programming">
-                    <span>Programming</span>
-                  </label>
+                  <label class="chip"><input type="checkbox" name="categories"
+                      value="General"><span>General</span></label>
+                  <label class="chip"><input type="checkbox" name="categories"
+                      value="Questions"><span>Questions</span></label>
+                  <label class="chip"><input type="checkbox" name="categories"
+                      value="Gaming"><span>Gaming</span></label>
+                  <label class="chip"><input type="checkbox" name="categories"
+                      value="Programming"><span>Programming</span></label>
                   {{end}}
                 </div>
 
@@ -119,6 +108,7 @@
         </section>
         {{end}}
 
+        <!-- Posts Section -->
         <section class="posts-header">
           <h2>Posts</h2>
           <form method="get" class="sort-form">
@@ -156,9 +146,8 @@
                 </div>
                 {{end}}
 
-                <!-- Action row (likes/dislikes/comments) -->
+                <!-- Action row -->
                 <div class="action-row">
-                  <!-- Likes/Dislikes as forms to keep server-side behavior -->
                   {{if $.Username}}
                   <form method="POST" action="/like" class="action-inline like-form">
                     <input type="hidden" name="target_type" value="post">
@@ -186,16 +175,77 @@
                     </div>
                   </div>
                   {{end}}
-
-                  <!-- Comments icon: navigates to dedicated post page (where comments live) -->
-                  <a class="icon-btn comment-link" href="/post/{{.ID}}" title="View comments">
-                    <img src="/static/icons/comments-white.png" alt="Comments">
-                    {{if .Comments}}
-                    {{range .Comments}} ... {{end}}
-                    {{end}}
-                  </a>
                 </div>
-                <!-- end action-row -->
+
+                <!-- Comments Section -->
+                <!-- Comments Section -->
+                <div class="comments-section">
+                  <div class="comments-header">
+                    <img src="/static/icons/comments-white.png" alt="Comments">
+                    <span class="count">{{len .Comments}}</span>
+                    <span>Comments</span>
+                  </div>
+
+                  {{if .Comments}}
+                  <div class="comments-list">
+                    {{range .Comments}}
+                    <div class="comment">
+                      <div class="comment-author">
+                        User #{{.UserID}} <!-- Or use {{.Username}} if you’ve joined users -->
+                      </div>
+
+                      <div class="comment-body">{{.Body}}</div>
+                      <div class="comment-date muted">{{.CreatedAt}}</div>
+
+                      <!-- Comment Likes/Dislikes -->
+                      <div class="action-row">
+                        {{if $.Username}}
+                        <form method="POST" action="/like" class="action-inline like-form">
+                          <input type="hidden" name="target_type" value="comment">
+                          <input type="hidden" name="target_id" value="{{.ID}}">
+
+                          <button class="icon-btn" type="submit" name="like_type" value="1" title="Upvote comment">
+                            <img src="/static/icons/like.png" alt="Like comment">
+                            <span class="count">{{.LikeCount}}</span>
+                          </button>
+
+                          <button class="icon-btn" type="submit" name="like_type" value="-1" title="Downvote comment">
+                            <img src="/static/icons/dislike.png" alt="Dislike comment">
+                            <span class="count">{{.DislikeCount}}</span>
+                          </button>
+                        </form>
+                        {{else}}
+                        <div class="action-inline muted">
+                          <div class="icon-btn static">
+                            <img src="/static/icons/like.png" alt="Like comment">
+                            <span class="count">{{.LikeCount}}</span>
+                          </div>
+                          <div class="icon-btn static">
+                            <img src="/static/icons/dislike.png" alt="Dislike comment">
+                            <span class="count">{{.DislikeCount}}</span>
+                          </div>
+                        </div>
+                        {{end}}
+                      </div>
+                    </div>
+                    {{end}}
+                  </div>
+                  {{else}}
+                  <p class="muted">No comments yet.</p>
+                  {{end}}
+
+                  {{if $.Username}}
+                  <form method="POST" action="/comment" class="comment-form">
+                    <input type="hidden" name="post_id" value="{{.ID}}">
+                    <textarea name="body" placeholder="Write a comment..." required></textarea>
+                    <button class="btn ghost" type="submit">Comment</button>
+                  </form>
+                  {{else}}
+                  <p class="muted small">Login to comment.</p>
+                  {{end}}
+                </div>
+
+                <!-- End Comments Section -->
 
               </div>
             </div>

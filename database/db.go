@@ -88,6 +88,8 @@ CREATE TABLE IF NOT EXISTS likes(
   UNIQUE(user_id, target_type, target_id),
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+
 `
 
 	if _, err := DB.Exec(schema); err != nil {

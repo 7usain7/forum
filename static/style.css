@@ -102,6 +102,7 @@ body {
   gap: 12px;
   margin-top: 8px;
 }
+
 /* ===== MAIN CONTENT ===== */
 .main-content {
   grid-area: main;
@@ -129,12 +130,10 @@ body {
   top: var(--header-height);
   bottom: 0;
   width: 2px;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0.3) 98%,
-    transparent 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0.3) 98%,
+      transparent 100%);
   cursor: pointer;
   z-index: 200;
   transition: left 0.3s ease;
@@ -169,11 +168,11 @@ body {
 }
 
 /* ===== COLLAPSIBLE SIDEBAR ===== */
-.sidebar-checkbox:checked ~ .layout-grid {
+.sidebar-checkbox:checked~.layout-grid {
   grid-template-columns: 0 1fr;
 }
 
-.sidebar-checkbox:checked ~ .layout-grid .sidebar {
+.sidebar-checkbox:checked~.layout-grid .sidebar {
   width: 0;
   min-width: 0;
   opacity: 0;
@@ -182,7 +181,7 @@ body {
   overflow: hidden;
 }
 
-.sidebar-checkbox:checked ~ .sidebar-toggle {
+.sidebar-checkbox:checked~.sidebar-toggle {
   left: 40px;
 }
 
@@ -219,21 +218,17 @@ body {
 }
 
 .btn.primary {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 69, 0, 0.15),
-    rgba(0, 121, 211, 0.12)
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 69, 0, 0.15),
+      rgba(0, 121, 211, 0.12));
   border-color: rgba(255, 255, 255, 0.05);
   color: var(--text);
 }
 
 .btn.primary:hover {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 69, 0, 0.25),
-    rgba(0, 121, 211, 0.2)
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 69, 0, 0.25),
+      rgba(0, 121, 211, 0.2));
   transform: translateY(-1px);
 }
 
@@ -520,18 +515,16 @@ body {
 }
 
 .chip:has(input[type="checkbox"]:checked) {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 69, 0, 0.6),
-    rgba(0, 121, 211, 0.6)
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 69, 0, 0.6),
+      rgba(0, 121, 211, 0.6));
   border: none;
   color: white;
   font-weight: 600;
   box-shadow: 0 0 8px rgba(0, 121, 211, 0.3);
 }
 
-.chip input[type="checkbox"]:checked + span {
+.chip input[type="checkbox"]:checked+span {
   background: none;
 }
 
@@ -548,6 +541,140 @@ body {
 .count.positive {
   color: var(--success);
 }
+
 .count.negative {
   color: var(--danger);
+}
+
+
+/*
+Comment section Css
+*/
+
+/* 🗨️ COMMENTS SECTION */
+.comments-section {
+  margin-top: 1.2em;
+  padding-top: 0.8em;
+  border-top: 1px solid #333;
+  background: #141414;
+  border-radius: 8px;
+  padding: 1em;
+}
+
+.comments-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  color: #ddd;
+  font-size: 0.95em;
+  margin-bottom: 0.6em;
+}
+
+.comments-header img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.9;
+}
+
+/* Scrollable list if comments are many */
+.comments-list {
+  max-height: 250px;
+  overflow-y: auto;
+  margin-bottom: 0.8em;
+  padding-right: 4px;
+}
+
+.comment {
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 0.6em 0.8em;
+  margin-bottom: 0.6em;
+  font-size: 0.9em;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: #f0f0f0;
+  margin-bottom: 2px;
+}
+
+.comment-body {
+  color: #ccc;
+  line-height: 1.4em;
+}
+
+.comment-date {
+  font-size: 0.75em;
+  color: #777;
+  margin-top: 4px;
+}
+
+/* Empty / muted state */
+.muted {
+  color: #777;
+}
+
+.muted.small {
+  font-size: 0.8em;
+  margin-top: 4px;
+}
+
+/* Comment form styling */
+.comment-form {
+  margin-top: 0.8em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.comment-form textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 60px;
+  padding: 8px 10px;
+  background: #121212;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #eee;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.comment-form textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 5px rgba(59, 130, 246, 0.4);
+  outline: none;
+}
+
+.comment-form button {
+  align-self: flex-end;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.comment-form button:hover {
+  background: #2563eb;
+}
+
+/* Responsive tweaks */
+@media (max-width: 700px) {
+  .comments-section {
+    padding: 0.8em;
+  }
+
+  .comment {
+    font-size: 0.85em;
+  }
+
+  .comment-form textarea {
+    font-size: 0.9em;
+  }
 }

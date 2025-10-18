@@ -109,6 +109,15 @@ func LoginPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
+		Name:     "session_user",
+		Value:    username, // directly store username here
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false, // true if using HTTPS
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
 		Value:    sessionid,
 		Path:     "/",

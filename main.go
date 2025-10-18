@@ -14,6 +14,7 @@ func main() {
 
 	http.HandleFunc("/", handler.IndexHandler)
 	http.HandleFunc("/like", handler.HandleLike)
+	http.HandleFunc("/comment", handler.CommentHandler)
 	http.HandleFunc("/login", handler.LoginHandler)
 	http.HandleFunc("/register", handler.RegisterHandler)
 	http.HandleFunc("/logout", handler.LogoutHandler)

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"forum/database"
+	"net/http"
 )
 
 type Category struct {
@@ -25,10 +26,19 @@ type Comment struct {
 	ID           int
 	PostID       int
 	UserID       int
+	Username     string // 👈 add this
 	Body         string
 	CreatedAt    string
 	LikeCount    int
 	DislikeCount int
+}
+
+func getUsernameFromSession(r *http.Request) string {
+	cookie, err := r.Cookie("session_user")
+	if err != nil {
+		return ""
+	}
+	return cookie.Value
 }
 
 func getUserIDbyusername(username string) (int, error) {
@@ -39,9 +49,11 @@ func getUserIDbyusername(username string) (int, error) {
 
 func fetchPostsWithComments() ([]Post, error) {
 	rows, err := database.DB.Query(`
-        SELECT id, user_id, title, body, created_at
-        FROM posts
-        ORDER BY created_at DESC`)
+        SELECT p.id, p.user_id, u.username, p.title, p.body, p.created_at
+        FROM posts p
+        JOIN users u ON p.user_id = u.id
+        ORDER BY p.created_at DESC
+    `)
 	if err != nil {
 		return nil, err
 	}
@@ -50,53 +62,64 @@ func fetchPostsWithComments() ([]Post, error) {
 	var posts []Post
 	for rows.Next() {
 		var p Post
-		if err := rows.Scan(&p.ID, &p.UserID, &p.Title, &p.Body, &p.CreatedAt); err != nil {
+		var username string
+		if err := rows.Scan(&p.ID, &p.UserID, &username, &p.Title, &p.Body, &p.CreatedAt); err != nil {
 			return nil, err
 		}
+		// Attach the username for template use (you can add a field to your Post struct if needed)
+		p.Categories = []Category{}
+		p.Comments = []Comment{}
 		posts = append(posts, p)
 	}
 
 	for i := range posts {
-		// --- Comments ---
-		cr, err := database.DB.Query(`
-            SELECT id, post_id, user_id, body, created_at
-            FROM comments
-            WHERE post_id = ?
-            ORDER BY created_at ASC`, posts[i].ID)
+		// --- Fetch comments with username ---
+		commentRows, err := database.DB.Query(`
+			SELECT c.id, c.post_id, c.user_id, u.username, c.body, c.created_at
+			FROM comments c
+			JOIN users u ON c.user_id = u.id
+			WHERE c.post_id = ?
+			ORDER BY c.created_at ASC
+        `, posts[i].ID)
 		if err != nil {
 			return nil, err
 		}
-		var cs []Comment
-		for cr.Next() {
+
+		var comments []Comment
+		for commentRows.Next() {
 			var c Comment
-			if err := cr.Scan(&c.ID, &c.PostID, &c.UserID, &c.Body, &c.CreatedAt); err != nil {
-				cr.Close()
+			var username string
+			if err := commentRows.Scan(&c.ID, &c.PostID, &c.UserID, &username, &c.Body, &c.CreatedAt); err != nil {
+				commentRows.Close()
 				return nil, err
 			}
-			cs = append(cs, c)
+			// If you want to show username in template, add a Username string field to Comment struct
+			comments = append(comments, c)
 		}
-		cr.Close()
-		posts[i].Comments = cs
+		commentRows.Close()
+		posts[i].Comments = comments
 
 		// --- Categories ---
-		categorieRow, err := database.DB.Query(`
+		catRows, err := database.DB.Query(`
             SELECT c.id, c.name 
             FROM categories c
             JOIN post_categories pc ON c.id = pc.category_id
-            WHERE pc.post_id = ?`, posts[i].ID)
+            WHERE pc.post_id = ?
+        `, posts[i].ID)
 		if err != nil {
 			return nil, err
 		}
+
 		var categories []Category
-		for categorieRow.Next() {
-			var categ Category
-			if err := categorieRow.Scan(&categ.ID, &categ.Name); err != nil {
-				categorieRow.Close()
+		for catRows.Next() {
+			var cat Category
+			if err := catRows.Scan(&cat.ID, &cat.Name); err != nil {
+				catRows.Close()
 				return nil, err
 			}
-			categories = append(categories, categ)
+			categories = append(categories, cat)
 		}
-		categorieRow.Close()
+		catRows.Close()
 		posts[i].Categories = categories
 
 		// --- Post Likes ---
@@ -105,8 +128,8 @@ func fetchPostsWithComments() ([]Post, error) {
                 COALESCE(SUM(CASE WHEN like_type = 1 THEN 1 ELSE 0 END), 0),
                 COALESCE(SUM(CASE WHEN like_type = -1 THEN 1 ELSE 0 END), 0)
             FROM likes
-            WHERE target_type = 'post' AND target_id = ?`, posts[i].ID).
-			Scan(&posts[i].LikeCount, &posts[i].DislikeCount)
+            WHERE target_type = 'post' AND target_id = ?
+        `, posts[i].ID).Scan(&posts[i].LikeCount, &posts[i].DislikeCount)
 		if err != nil {
 			return nil, err
 		}
@@ -118,8 +141,8 @@ func fetchPostsWithComments() ([]Post, error) {
                     COALESCE(SUM(CASE WHEN like_type = 1 THEN 1 ELSE 0 END), 0),
                     COALESCE(SUM(CASE WHEN like_type = -1 THEN 1 ELSE 0 END), 0)
                 FROM likes
-                WHERE target_type = 'comment' AND target_id = ?`, posts[i].Comments[j].ID).
-				Scan(&posts[i].Comments[j].LikeCount, &posts[i].Comments[j].DislikeCount)
+                WHERE target_type = 'comment' AND target_id = ?
+            `, posts[i].Comments[j].ID).Scan(&posts[i].Comments[j].LikeCount, &posts[i].Comments[j].DislikeCount)
 			if err != nil {
 				return nil, err
 			}
