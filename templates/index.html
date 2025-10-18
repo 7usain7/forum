@@ -5,179 +5,214 @@
   <meta charset="utf-8">
   <title>Forum — Home</title>
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="/static/icons/favicon.png" type="image/x-icon">
 </head>
 
 <body>
-  <header>
-    <a href="/" style="color: black;"> <strong>Forum</strong> </a>
-
-    <!-- Category dropdown -->
-    <div>
-      <form method="post" action="/r/" class="category-form">
-        <select name="category" class="category-select">
-          <option value="">Select Category</option>
-          {{if .Data.Categories}}
-          {{range .Data.Categories}}
-          <option value="{{.Name}}">{{.Name}}</option>
-          {{end}}
-          {{end}}
-        </select>
-        <input class="category-submit" type="submit" value="Go">
-      </form>
-    </div>
-
-    {{if .Username}}
-    <form method="post" action="/logout" class="logout-form" style="float: right;">
-      <button type="submit">Logout</button>
-    </form>
-    {{else}}
-    <div class="auth-links">
-      <a class="btn" href="/login">Login</a>
-      <a class="btn primary" href="/register">Register</a>
-    </div>
-    {{end}}
-  </header>
-
-  <main>
-    {{if .Username}}
-    <h1>Hi, {{.Username}} 👋</h1>
-
-    <!-- create post form -->
-    <h2>Create a new post</h2>
-
-    <a href="#new-post" class="btn primary">+ New Post</a>
-    <!-- Create post popup container -->
-    <div id="new-post" class="modal">
-      <div class="modal-content">
-        <h2>Create a new post</h2>
-        <form method="POST" action="/" class="create-post-form">
-          <input type="text" name="title" placeholder="Title">
-          <textarea name="body" placeholder="Write your post..."></textarea>
-          <!-- Category chips from database -->
-          <div class="chips">
-            {{if .Data.Categories}}
-            {{range .Data.Categories}}
-            <label class="chip">
-              <input type="checkbox" name="categories" value="{{.Name}}">
-              <span>{{.Name}}</span>
-            </label>
-            {{end}}
-            {{else}}
-            <!-- Fallback if no categories exist -->
-            <label class="chip">
-              <input type="checkbox" name="categories" value="General">
-              <span>General</span>
-            </label>
-            <label class="chip">
-              <input type="checkbox" name="categories" value="Questions">
-              <span>Questions</span>
-            </label>
-            <label class="chip">
-              <input type="checkbox" name="categories" value="Gaming">
-              <span>Gaming</span>
-            </label>
-            <label class="chip">
-              <input type="checkbox" name="categories" value="Programming">
-              <span>Programming</span>
-            </label>
-            {{end}}
-          </div>
-
-          <button type="submit">Publish</button>
-        </form>
-        <a href="#" class="close-btn">X Close</a>
-      </div>
-    </div>
-
-    {{else}}
-    <h1>Welcome</h1>
-    <p>Please login or register to continue.</p>
-    {{end}}
-
-    <h2 style="margin-bottom: 0px;">Posts</h2>
-    <form method="get" class="sort-form">
-      <select name="sort" id="sort" class="sort-select">
-        <option value="most-liked" {{if eq .Data.Filter "most-liked" }} selected{{end}}>Top</option>
-        <option value="most-popular" {{if eq .Data.Filter "most-popular" }} selected{{end}}>Hot</option>
-        <option value="newest" {{if eq .Data.Filter "newest" }} selected{{end}}>Newest</option>
-        <option value="oldest" {{if eq .Data.Filter "oldest" }} selected{{end}}>Oldest</option>
-      </select>
-      <input type="submit" value="Apply" class="sort-submit">
-    </form>
-    {{if .Data.Posts}}
-    {{range .Data.Posts}}
-    <div class="post" id="post-{{.ID}}">
-      <h3>{{.Title}}</h3>
-      <div class="muted">{{.CreatedAt}}</div>
-      <p>{{.Body}}</p>
-
-      <!-- Display categories-->
-      {{if .Categories}}
-      <div class="categories">
-        {{range .Categories}}
-        <a href="/r/{{.Name}}"><span class="chip">{{.Name}}</span></a>
-        {{end}}
-      </div>
-      {{end}}
-
-      <!-- Likes -->
-      <div class="likes">
-        {{if $.Username}}
-        <form method="POST" action="/like" class="like-form">
-          <input type="hidden" name="target_type" value="post">
-          <input type="hidden" name="target_id" value="{{.ID}}">
-          <button type="submit" name="like_type" value="1">👍 ({{.LikeCount}})</button>
-          <button type="submit" name="like_type" value="-1">👎 ({{.DislikeCount}})</button>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="/"> <strong>Forum</strong> </a>
+      <div class="header-actions">
+        {{if .Username}}
+        <form method="post" action="/logout" class="logout-form">
+          <button class="btn ghost" type="submit">Logout</button>
         </form>
         {{else}}
-        <div class="muted">👍 {{.LikeCount}} | 👎 {{.DislikeCount}}</div>
-        {{end}}
-      </div>
-
-      <!-- Comments -->
-      <div class="comments">
-        <div class="comments-title muted">Comments</div>
-
-        {{if .Comments}}
-        {{range .Comments}}
-        <div class="comment">
-          <div class="muted">{{.CreatedAt}}</div>
-          <div>{{.Body}}</div>
-
-          <!-- Comment likes -->
-          <div class="likes">
-            {{if $.Username}}
-            <form method="POST" action="/like" class="like-form">
-              <input type="hidden" name="target_type" value="comment">
-              <input type="hidden" name="target_id" value="{{.ID}}">
-              <button type="submit" name="like_type" value="1">👍 ({{.LikeCount}})</button>
-              <button type="submit" name="like_type" value="-1">👎 ({{.DislikeCount}})</button>
-            </form>
-            {{else}}
-            <div class="muted">👍 {{.LikeCount}} | 👎 {{.DislikeCount}}</div>
-            {{end}}
-          </div>
+        <div class="auth-links">
+          <a class="btn ghost" href="/login">Login</a>
+          <a class="btn primary" href="/register">Register</a>
         </div>
         {{end}}
-        {{else}}
-        <div class="muted">No comments yet.</div>
-        {{end}}
+      </div>
+    </div>
+  </header>
 
-        {{if $.Username}}
-        <form method="POST" action="/comment" class="comment-form">
-          <input type="hidden" name="post_id" value="{{.ID}}">
-          <textarea name="body" placeholder="Write a comment..."></textarea>
-          <button type="submit">Add Comment</button>
+  <!-- Sidebar toggle -->
+  <input type="checkbox" id="sidebar-toggle" class="sidebar-checkbox">
+
+  <!-- Main layout grid -->
+  <div class="layout-grid">
+    <!-- Sidebar -->
+    <input type="checkbox" id="sidebar-toggle" class="sidebar-checkbox">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-content">
+        <form method="post" action="/r/" class="category-form">
+          <label>Category</label>
+          <select name="category" class="category-select" onchange="this.form.submit()">
+            <option value="">Select Category</option>
+            {{if .Data.Categories}}
+            {{range .Data.Categories}}
+            <option value="{{.Name}}">{{.Name}}</option>
+            {{end}}
+            {{end}}
+          </select>
+          <!-- <input class="category-submit" type="submit" value="Go"> -->
         </form>
-        {{end}}
       </div>
 
-    </div>
-    {{end}}
-    {{else}}
-    <p>No posts yet.</p>
-    {{end}}
-  </main>
+      <!-- Sidebar toggle button -->
+      <label for="sidebar-toggle" class="sidebar-toggle">
+        <span>☰</span>
+      </label>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <div class="container">
+        {{if .Username}}
+        <section class="welcome">
+          <h1 class="greeting">Hi, {{.Username}} 👋</h1>
+
+          <div class="new-post-actions">
+            <a href="#new-post" class="btn primary">+ New Post</a>
+          </div>
+
+          <!-- Create post popup container -->
+          <div id="new-post" class="modal">
+            <div class="modal-content">
+              <h2>Create a new post</h2>
+              <form method="POST" action="/" class="create-post-form">
+                <input type="text" name="title" placeholder="Title">
+                <textarea name="body" placeholder="Write your post..."></textarea>
+                <!-- Category chips from database -->
+                <div class="chips">
+                  {{if .Data.Categories}}
+                  {{range .Data.Categories}}
+                  <label class="chip">
+                    <input type="checkbox" name="categories" value="{{.Name}}">
+                    <span>{{.Name}}</span>
+                  </label>
+                  {{end}}
+                  {{else}}
+                  <label class="chip">
+                    <input type="checkbox" name="categories" value="General">
+                    <span>General</span>
+                  </label>
+                  <label class="chip">
+                    <input type="checkbox" name="categories" value="Questions">
+                    <span>Questions</span>
+                  </label>
+                  <label class="chip">
+                    <input type="checkbox" name="categories" value="Gaming">
+                    <span>Gaming</span>
+                  </label>
+                  <label class="chip">
+                    <input type="checkbox" name="categories" value="Programming">
+                    <span>Programming</span>
+                  </label>
+                  {{end}}
+                </div>
+
+                <button class="btn primary" type="submit">Publish</button>
+              </form>
+              <a href="#" class="close-btn">X Close</a>
+            </div>
+          </div>
+        </section>
+        {{else}}
+        <section class="welcome">
+          <h1>Welcome</h1>
+          <p>Please login or register to continue.</p>
+        </section>
+        {{end}}
+
+        <section class="posts-header">
+          <h2>Posts</h2>
+          <form method="get" class="sort-form">
+            <select name="sort" id="sort" class="sort-select">
+              <option value="most-liked" {{if eq .Data.Filter "most-liked" }} selected{{end}}>Top</option>
+              <option value="most-popular" {{if eq .Data.Filter "most-popular" }} selected{{end}}>Hot</option>
+              <option value="newest" {{if eq .Data.Filter "newest" }} selected{{end}}>Newest</option>
+              <option value="oldest" {{if eq .Data.Filter "oldest" }} selected{{end}}>Oldest</option>
+            </select>
+            <input type="submit" value="Apply" class="sort-submit">
+          </form>
+        </section>
+
+        {{if .Data.Posts}}
+        <section class="posts-list">
+          {{range .Data.Posts}}
+          <article class="post" id="post-{{.ID}}">
+            <div class="post-main">
+              <div class="post-content">
+                <div class="post-head">
+                  <h3 class="post-title">{{.Title}}</h3>
+                  <div class="muted post-meta">{{.CreatedAt}}</div>
+                </div>
+
+                <div class="post-body">
+                  <p>{{.Body}}</p>
+                </div>
+
+                <!-- Display categories -->
+                {{if .Categories}}
+                <div class="categories">
+                  {{range .Categories}}
+                  <a href="/r/{{.Name}}"><span class="chip">{{.Name}}</span></a>
+                  {{end}}
+                </div>
+                {{end}}
+
+                <!-- Action row (likes/dislikes/comments) -->
+                <div class="action-row">
+                  <!-- Likes/Dislikes as forms to keep server-side behavior -->
+                  {{if $.Username}}
+                  <form method="POST" action="/like" class="action-inline like-form">
+                    <input type="hidden" name="target_type" value="post">
+                    <input type="hidden" name="target_id" value="{{.ID}}">
+
+                    <button class="icon-btn" type="submit" name="like_type" value="1" title="Upvote">
+                      <img src="/static/icons/like.png" alt="Upvote">
+                      <span class="count">{{.LikeCount}}</span>
+                    </button>
+
+                    <button class="icon-btn" type="submit" name="like_type" value="-1" title="Downvote">
+                      <img src="/static/icons/dislike.png" alt="Downvote">
+                      <span class="count">{{.DislikeCount}}</span>
+                    </button>
+                  </form>
+                  {{else}}
+                  <div class="action-inline muted">
+                    <div class="icon-btn static">
+                      <img src="/static/icons/like.png" alt="Upvote">
+                      <span class="count">{{.LikeCount}}</span>
+                    </div>
+                    <div class="icon-btn static">
+                      <img src="/static/icons/dislike.png" alt="Downvote">
+                      <span class="count">{{.DislikeCount}}</span>
+                    </div>
+                  </div>
+                  {{end}}
+
+                  <!-- Comments icon: navigates to dedicated post page (where comments live) -->
+                  <a class="icon-btn comment-link" href="/post/{{.ID}}" title="View comments">
+                    <img src="/static/icons/comments-white.png" alt="Comments">
+                    {{if .Comments}}
+                    {{range .Comments}} ... {{end}}
+                    {{end}}
+                  </a>
+                </div>
+                <!-- end action-row -->
+
+              </div>
+            </div>
+          </article>
+          {{end}}
+        </section>
+        {{else}}
+        <p>No posts yet.</p>
+        {{end}}
+      </div>
+    </main>
+  </div>
+
+  <!-- Sidebar toggle button -->
+  <label for="sidebar-toggle" class="sidebar-toggle">
+    <span>☰</span>
+  </label>
 </body>
 
 </html>
