@@ -31,7 +31,9 @@ func renderPage(w http.ResponseWriter, r *http.Request, templateName string, dat
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := tpl.Execute(w, pageData); err != nil {
-		http.Error(w, "template error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		renderPage(w, r, "Can't Access Template", InternalServerError)
+		return
 	}
 }
 
@@ -248,7 +250,8 @@ func CommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Convert username → user_id
 	userID, err := getUserIDbyusername(username)
 	if err != nil {
-		http.Error(w, "User not found", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnauthorized)
+		renderPage(w, r, "Can't find user", Unauthorized)
 		return
 	}
 
@@ -275,19 +278,22 @@ func CommentHandler(w http.ResponseWriter, r *http.Request) {
 
 func HandleLike(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		renderPage(w, r, "Method Not Allowed", MethodNotAllowed)
 		return
 	}
 
 	username := CurrentUsername(r) // you already have session logic
 	if username == "" {
-		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		renderPage(w, r, "Unauthorized Access", Unauthorized)
 		return
 	}
 
 	userID, err := getUserIDbyusername(username)
 	if err != nil {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		renderPage(w, r, "Unauthorized Access", Unauthorized)
 		return
 	}
 
