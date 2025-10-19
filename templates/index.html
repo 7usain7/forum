@@ -130,7 +130,7 @@
               <div class="post-content">
                 <div class="post-head">
                   <h3 class="post-title">{{.Title}}</h3>
-                  <div class="muted post-meta">{{.CreatedAt}}</div>
+                  <div class="muted post-meta">Posted by <strong>{{.Username}}</strong> — {{.CreatedAt}}</div>
                 </div>
 
                 <div class="post-body">
@@ -191,7 +191,7 @@
                     {{range .Comments}}
                     <div class="comment">
                       <div class="comment-author">
-                        User #{{.UserID}} <!-- Or use {{.Username}} if you’ve joined users -->
+                        {{.Username}}
                       </div>
 
                       <div class="comment-body">{{.Body}}</div>

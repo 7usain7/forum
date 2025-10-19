@@ -20,13 +20,14 @@ type Post struct {
 	Categories   []Category
 	LikeCount    int // total likes
 	DislikeCount int // optional, for like_type = -1
+	Username string
 }
 
 type Comment struct {
 	ID           int
 	PostID       int
 	UserID       int
-	Username     string // 👈 add this
+	Username     string
 	Body         string
 	CreatedAt    string
 	LikeCount    int
@@ -62,14 +63,15 @@ func fetchPostsWithComments() ([]Post, error) {
 	var posts []Post
 	for rows.Next() {
 		var p Post
-		var username string
-		if err := rows.Scan(&p.ID, &p.UserID, &username, &p.Title, &p.Body, &p.CreatedAt); err != nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.Username, &p.Title, &p.Body, &p.CreatedAt); err != nil {
 			return nil, err
 		}
-		// Attach the username for template use (you can add a field to your Post struct if needed)
 		p.Categories = []Category{}
 		p.Comments = []Comment{}
 		posts = append(posts, p)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	for i := range posts {
@@ -88,15 +90,16 @@ func fetchPostsWithComments() ([]Post, error) {
 		var comments []Comment
 		for commentRows.Next() {
 			var c Comment
-			var username string
-			if err := commentRows.Scan(&c.ID, &c.PostID, &c.UserID, &username, &c.Body, &c.CreatedAt); err != nil {
+			if err := commentRows.Scan(&c.ID, &c.PostID, &c.UserID, &c.Username, &c.Body, &c.CreatedAt); err != nil {
 				commentRows.Close()
 				return nil, err
 			}
-			// If you want to show username in template, add a Username string field to Comment struct
 			comments = append(comments, c)
 		}
 		commentRows.Close()
+		if err := commentRows.Err(); err != nil {
+			return nil, err
+		}
 		posts[i].Comments = comments
 
 		// --- Categories ---
@@ -120,30 +123,31 @@ func fetchPostsWithComments() ([]Post, error) {
 			categories = append(categories, cat)
 		}
 		catRows.Close()
+		if err := catRows.Err(); err != nil {
+			return nil, err
+		}
 		posts[i].Categories = categories
 
 		// --- Post Likes ---
-		err = database.DB.QueryRow(`
+		if err := database.DB.QueryRow(`
             SELECT 
                 COALESCE(SUM(CASE WHEN like_type = 1 THEN 1 ELSE 0 END), 0),
                 COALESCE(SUM(CASE WHEN like_type = -1 THEN 1 ELSE 0 END), 0)
             FROM likes
             WHERE target_type = 'post' AND target_id = ?
-        `, posts[i].ID).Scan(&posts[i].LikeCount, &posts[i].DislikeCount)
-		if err != nil {
+        `, posts[i].ID).Scan(&posts[i].LikeCount, &posts[i].DislikeCount); err != nil {
 			return nil, err
 		}
 
 		// --- Comment Likes ---
 		for j := range posts[i].Comments {
-			err = database.DB.QueryRow(`
+			if err := database.DB.QueryRow(`
                 SELECT 
                     COALESCE(SUM(CASE WHEN like_type = 1 THEN 1 ELSE 0 END), 0),
                     COALESCE(SUM(CASE WHEN like_type = -1 THEN 1 ELSE 0 END), 0)
                 FROM likes
                 WHERE target_type = 'comment' AND target_id = ?
-            `, posts[i].Comments[j].ID).Scan(&posts[i].Comments[j].LikeCount, &posts[i].Comments[j].DislikeCount)
-			if err != nil {
+            `, posts[i].Comments[j].ID).Scan(&posts[i].Comments[j].LikeCount, &posts[i].Comments[j].DislikeCount); err != nil {
 				return nil, err
 			}
 		}
@@ -151,6 +155,7 @@ func fetchPostsWithComments() ([]Post, error) {
 
 	return posts, nil
 }
+
 
 // Getting all categories for the form
 func fetchAllCategories() ([]Category, error) {
