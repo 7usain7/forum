@@ -27,12 +27,17 @@ func RegisterPOST(w http.ResponseWriter, r *http.Request) {
 		renderPage(w, r, "error", BadRequest)
 		return
 	}
+
 	//password hashing
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		WriteErrorLog("error.log", "failed to hash password: "+err.Error())
 		renderPage(w, r, "error", InternalServerError)
+		return
+	}
+	if IsEmail(email)==false{
+		renderPage(w, r, "register", "Incorrect Email")
 		return
 	}
 

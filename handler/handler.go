@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"net/mail"
 )
 
 // renderPage renders a template with common data
@@ -383,4 +384,13 @@ func renderSubforum(w http.ResponseWriter, r *http.Request, subforum string) {
 	}
 
 	renderPage(w, r, "index", data)
+}
+
+func IsEmail(email string) bool{
+
+	_,err := mail.ParseAddress(email)
+	if err!=nil{
+		return false
+	}
+	return true
 }
