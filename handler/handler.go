@@ -4,9 +4,9 @@ import (
 	"forum/database"
 	"html/template"
 	"net/http"
+	"net/mail"
 	"strings"
 	"time"
-	"net/mail"
 )
 
 // renderPage renders a template with common data
@@ -332,7 +332,21 @@ func SubforumHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+
+	categories, err := fetchAllCategories()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to fetch categories: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
+		return
+	}
+
 	subforum := parts[2]
+	if !contains(categories, subforum) {
+		w.WriteHeader(http.StatusNotFound)
+		renderPage(w, r, "error", NotFound)
+		return
+	}
 	renderSubforum(w, r, subforum)
 }
 
@@ -386,11 +400,16 @@ func renderSubforum(w http.ResponseWriter, r *http.Request, subforum string) {
 	renderPage(w, r, "index", data)
 }
 
-func IsEmail(email string) bool{
+func IsEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
+}
 
-	_,err := mail.ParseAddress(email)
-	if err!=nil{
-		return false
+func contains(slice []Category, s string) bool {
+	for _, v := range slice {
+		if v.Name == s {
+			return true
+		}
 	}
-	return true
+	return false
 }

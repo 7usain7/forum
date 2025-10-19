@@ -36,7 +36,7 @@ func RegisterPOST(w http.ResponseWriter, r *http.Request) {
 		renderPage(w, r, "error", InternalServerError)
 		return
 	}
-	if IsEmail(email)==false{
+	if !IsEmail(email) {
 		renderPage(w, r, "register", "Incorrect Email")
 		return
 	}
