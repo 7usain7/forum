@@ -64,3 +64,4 @@
 [2025-10-20 15:21:39] ERROR: Failed to fetch posts by liked: no such column: l.post_id
 [2025-10-20 15:21:39] ERROR: Failed to fetch posts by liked: no such column: l.post_id
 [2025-10-20 15:21:39] ERROR: Failed to fetch posts by liked: no such column: l.post_id
+[2025-10-21 02:25:28] ERROR: failed to parse template: open templates/index.html.html: no such file or directory

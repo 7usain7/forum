@@ -19,8 +19,8 @@ func main() {
 	http.HandleFunc("/register", handler.RegisterHandler)
 	http.HandleFunc("/logout", handler.LogoutHandler)
 	http.HandleFunc("/r/", handler.SubforumHandler)
-	http.HandleFunc("/likedposts", handler.LikedPostsHandler)
-	http.HandleFunc("/createdposts", handler.CreatedPostsHandler)
+	http.HandleFunc("/Liked_posts", handler.LikedPostsHandler)
+	http.HandleFunc("/Created_posts", handler.CreatedPostsHandler)
 
 	// Static files
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
