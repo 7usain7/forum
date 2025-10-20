@@ -95,3 +95,30 @@ func prepareIndexData(posts []Post, categories []Category, filter, errorType str
 		Error:      errorType,
 	}
 }
+
+func CreatedPostsHandler(w http.ResponseWriter, r *http.Request) {
+	username := getUsernameFromSession(r)
+	if username == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	posts, err := fetchPostsWithComments("created_by", username)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "Failed to fetch posts based on created by: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
+		return
+	}
+
+	categories, err := fetchAllCategories()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "Failed to fetch categories: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
+		return
+	}
+
+	data := prepareIndexData(posts, categories, "", "")
+	renderPage(w, r, "index", data)
+}

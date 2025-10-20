@@ -72,6 +72,14 @@ func fetchPostsWithComments(fetchType, username string) ([]Post, error) {
 		GROUP BY p.id
 		ORDER BY COUNT(l.id) DESC
 		`, username)
+	case "created_by":
+		rows, err = database.DB.Query(`
+		SELECT p.id, p.user_id, u.username, p.title, p.body, p.created_at
+		FROM posts p
+		JOIN users u ON p.user_id = u.id
+		WHERE u.username = ?
+		ORDER BY p.created_at DESC
+		`, username)
 	}
 
 	if err != nil {
@@ -88,8 +96,8 @@ func fetchPostsWithComments(fetchType, username string) ([]Post, error) {
 		p.Categories = []Category{}
 		p.Comments = []Comment{}
 		if t, err := time.Parse(time.RFC3339, p.CreatedAt); err == nil {
-        	p.CreatedAt = t.Format("2006-01-02")
-    	}
+			p.CreatedAt = t.Format("2006-01-02")
+		}
 		posts = append(posts, p)
 	}
 	if err := rows.Err(); err != nil {
@@ -117,8 +125,8 @@ func fetchPostsWithComments(fetchType, username string) ([]Post, error) {
 				return nil, err
 			}
 			if t, err := time.Parse(time.RFC3339, c.CreatedAt); err == nil {
-        	c.CreatedAt = t.Format("2006-01-02")
-    		}
+				c.CreatedAt = t.Format("2006-01-02")
+			}
 
 			comments = append(comments, c)
 		}
