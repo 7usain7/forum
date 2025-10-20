@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"database/sql"
 	"forum/database"
 	"html/template"
 	"net/http"
 	"net/mail"
+	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -50,37 +53,14 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, err := fetchPostsWithComments()
+	posts, filter, err := fetchAndFilterPosts(r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		WriteErrorLog("error.log", "failed to fetch posts: "+err.Error())
+		WriteErrorLog("error.log", "failed to fetch/filter posts: "+err.Error())
 		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 
-	// Check for filter parameters
-	filter := r.URL.Query().Get("sort")
-
-	if filter != "" {
-		switch filter {
-		case "newest", "oldest":
-			posts, err = filterByCreationDate(filter)
-		case "most_popular":
-			posts, err = filterByPopularity()
-		case "most_liked":
-			posts, err = filterBymostliked()
-		default:
-			// Invalid filter, ignore or handle as needed
-		}
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			WriteErrorLog("error.log", "failed to filter posts: "+err.Error())
-			renderPage(w, r, "error", InternalServerError)
-			return
-		}
-	}
-
-	// Fetch categories for the form
 	categories, err := fetchAllCategories()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -89,20 +69,9 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check for error parameters in URL
 	errorType := r.URL.Query().Get("error")
 
-	data := struct {
-		Posts      []Post
-		Categories []Category
-		Filter     string
-		Error      string
-	}{
-		Posts:      posts,
-		Categories: categories,
-		Error:      errorType,
-		Filter:     filter,
-	}
+	data := prepareIndexData(posts, categories, filter, errorType)
 
 	renderPage(w, r, "index", data)
 }
@@ -273,47 +242,93 @@ func CommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if strings.Contains(r.Referer(), "/likedposts") {
+		http.Redirect(w, r, "/likedposts", http.StatusSeeOther)
+		return
+	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func HandleLike(w http.ResponseWriter, r *http.Request) {
+	// Only allow POST requests
 	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		renderPage(w, r, "Method Not Allowed", MethodNotAllowed)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	username := CurrentUsername(r) // you already have session logic
+	// Make sure the user is logged in
+	username := CurrentUsername(r)
 	if username == "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		renderPage(w, r, "Unauthorized Access", Unauthorized)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 
+	// Get user ID
 	userID, err := getUserIDbyusername(username)
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		renderPage(w, r, "Unauthorized Access", Unauthorized)
+		http.Error(w, "User not found", http.StatusUnauthorized)
 		return
 	}
 
+	// Get data from the form
 	targetType := r.FormValue("target_type") // "post" or "comment"
 	targetID := r.FormValue("target_id")
 	likeType := r.FormValue("like_type") // "1" for like, "-1" for dislike
 
-	_, err = database.DB.Exec(`
-        INSERT INTO likes (user_id, target_type, target_id, like_type)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(user_id, target_type, target_id)
-        DO UPDATE SET like_type = excluded.like_type
-    `, userID, targetType, targetID, likeType)
+	// Check if the user already liked/disliked this item
+	var existingType int
+	err = database.DB.QueryRow(`
+        SELECT like_type FROM likes
+        WHERE user_id = ? AND target_type = ? AND target_id = ?
+    `, userID, targetType, targetID).Scan(&existingType)
 
+	if err == nil {
+		// There is already a record for this user
+		if existingType == atoiSafe(likeType) {
+			_, err = database.DB.Exec(`
+                DELETE FROM likes
+                WHERE user_id = ? AND target_type = ? AND target_id = ?
+            `, userID, targetType, targetID)
+		} else {
+			_, err = database.DB.Exec(`
+                UPDATE likes
+                SET like_type = ?
+                WHERE user_id = ? AND target_type = ? AND target_id = ?
+            `, likeType, userID, targetType, targetID)
+		}
+	} else if err == sql.ErrNoRows {
+		_, err = database.DB.Exec(`
+            INSERT INTO likes (user_id, target_type, target_id, like_type)
+            VALUES (?, ?, ?, ?)
+        `, userID, targetType, targetID, likeType)
+	}
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	ref := r.Header.Get("Referer")
+	if ref != "" {
+		if u, perr := url.Parse(ref); perr == nil {
+			path := u.RequestURI()
+			if path == "" {
+				path = "/"
+			}
+			http.Redirect(w, r, path, http.StatusSeeOther)
+			return
+		}
+	}
+
+	if strings.Contains(r.Referer(), "/likedposts") {
+		http.Redirect(w, r, "/likedposts", http.StatusSeeOther)
+		return
+	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func atoiSafe(s string) int {
+	i, _ := strconv.Atoi(s)
+	return i
 }
 
 func SubforumHandler(w http.ResponseWriter, r *http.Request) {
@@ -357,7 +372,7 @@ func SubforumHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderSubforum(w http.ResponseWriter, r *http.Request, subforum string) {
-	posts, err := fetchPostsWithComments()
+	posts, err := fetchPostsWithComments("all", "")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		WriteErrorLog("error.log", "failed to fetch posts: "+err.Error())
@@ -418,4 +433,33 @@ func contains(slice []Category, s string) bool {
 		}
 	}
 	return false
+}
+
+func LikedPostsHandler(w http.ResponseWriter, r *http.Request) {
+	username := CurrentUsername(r)
+	if username == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	Posts, err := fetchPostsWithComments("liked", username)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "Failed to fetch posts by liked: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
+		return
+	}
+	categories, err := fetchAllCategories()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to fetch categories: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
+		return
+	}
+
+	errorType := r.URL.Query().Get("error")
+
+	data := prepareIndexData(Posts, categories, "", errorType)
+
+	renderPage(w, r, "index", data)
 }

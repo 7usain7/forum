@@ -1,7 +1,9 @@
 package handler
 
+import "net/http"
+
 func filterByCreationDate(order string) ([]Post, error) {
-	posts, err := fetchPostsWithComments()
+	posts, err := fetchPostsWithComments("all", "")
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +22,7 @@ func filterByCreationDate(order string) ([]Post, error) {
 }
 
 func filterByPopularity() ([]Post, error) {
-	posts, err := fetchPostsWithComments()
+	posts, err := fetchPostsWithComments("all", "")
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +40,7 @@ func filterByPopularity() ([]Post, error) {
 }
 
 func filterBymostliked() ([]Post, error) {
-	posts, err := fetchPostsWithComments()
+	posts, err := fetchPostsWithComments("all", "")
 	if err != nil {
 		return nil, err
 	}
@@ -52,4 +54,44 @@ func filterBymostliked() ([]Post, error) {
 		}
 	}
 	return posts, nil
+}
+
+func fetchAndFilterPosts(r *http.Request) ([]Post, string, error) {
+	posts, err := fetchPostsWithComments("all", "")
+	if err != nil {
+		return nil, "", err
+	}
+
+	filter := r.URL.Query().Get("sort")
+	if filter == "" {
+		return posts, "", nil
+	}
+
+	switch filter {
+	case "newest", "oldest":
+		posts, err = filterByCreationDate(filter)
+	case "most_popular":
+		posts, err = filterByPopularity()
+	case "most_liked":
+		posts, err = filterBymostliked()
+	default:
+		// unknown filter: ignore and return original slice
+		filter = ""
+	}
+	return posts, filter, err
+}
+
+// prepareIndexData builds the payload passed to the index template.
+func prepareIndexData(posts []Post, categories []Category, filter, errorType string) any {
+	return struct {
+		Posts      []Post
+		Categories []Category
+		Filter     string
+		Error      string
+	}{
+		Posts:      posts,
+		Categories: categories,
+		Filter:     filter,
+		Error:      errorType,
+	}
 }

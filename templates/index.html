@@ -37,8 +37,7 @@
     <aside class="sidebar">
       <div class="sidebar-content">
         <form method="post" action="/r/" class="category-form">
-          <label>Category</label>
-          <select name="category" class="category-select" onchange="this.form.submit()">
+          <select name="category" class="category-select">
             <option value="">Select Category</option>
             {{if .Data.Categories}}
             {{range .Data.Categories}}
@@ -46,7 +45,16 @@
             {{end}}
             {{end}}
           </select>
+          <input type="submit" value="Go" class="category-submit">
         </form>
+        <nav class="sidebar-nav">
+          <ul>
+            <li><a href="/">Home</a></li>
+            {{if .Username}}
+            <li><a href="/likedposts">Liked Posts</a></li>
+            {{end}}
+          </ul>
+        </nav>
       </div>
 
       <!-- Sidebar toggle button -->
