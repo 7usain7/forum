@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"forum/database"
 	"net/http"
+	"time"
 )
 
 type Category struct {
@@ -86,6 +87,9 @@ func fetchPostsWithComments(fetchType, username string) ([]Post, error) {
 		}
 		p.Categories = []Category{}
 		p.Comments = []Comment{}
+		if t, err := time.Parse(time.RFC3339, p.CreatedAt); err == nil {
+        	p.CreatedAt = t.Format("2006-01-02")
+    	}
 		posts = append(posts, p)
 	}
 	if err := rows.Err(); err != nil {
@@ -112,6 +116,10 @@ func fetchPostsWithComments(fetchType, username string) ([]Post, error) {
 				commentRows.Close()
 				return nil, err
 			}
+			if t, err := time.Parse(time.RFC3339, c.CreatedAt); err == nil {
+        	c.CreatedAt = t.Format("2006-01-02")
+    		}
+
 			comments = append(comments, c)
 		}
 		commentRows.Close()
