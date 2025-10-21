@@ -401,7 +401,7 @@ func atoiSafe(s string) int {
 func SubforumHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	if r.Method == http.MethodPost {
-		category := r.FormValue("category")
+		category := strings.TrimSpace(r.FormValue("category"))
 		if category != "" {
 			http.Redirect(w, r, "/r/"+category, http.StatusSeeOther)
 			return
@@ -414,10 +414,12 @@ func SubforumHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
+
 	// Expecting path like /r/{subforum}
 	parts := strings.Split(path, "/")
 	if len(parts) < 3 || parts[1] != "r" || parts[2] == "" {
-		http.NotFound(w, r)
+		w.WriteHeader(http.StatusNotFound)
+		renderPage(w, r, "error", NotFound)
 		return
 	}
 
@@ -469,21 +471,8 @@ func renderSubforum(w http.ResponseWriter, r *http.Request, subforum string) {
 
 	// Check for error parameters in URL
 	errorType := r.URL.Query().Get("error")
-	filter := r.URL.Query().Get("sort")
-
-	data := struct {
-		Posts      []Post
-		Categories []Category
-		Filter     string
-		Error      string
-		Subforum   string
-	}{
-		Posts:      filteredPosts,
-		Categories: categories,
-		Filter:     filter,
-		Error:      errorType,
-		Subforum:   subforum,
-	}
+	errorType = errorString(errorType)
+	data := prepareIndexData(filteredPosts, categories, "", errorType, nil, "home")
 
 	renderPage(w, r, "index", data)
 }
