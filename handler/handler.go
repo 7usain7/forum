@@ -286,6 +286,19 @@ func CommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate comment length
+	if len(body) > 512 {
+		// Store error in temporary storage for popup display
+		sessionID := getSessionID(r)
+		if sessionID != "" {
+			validationMutex.Lock()
+			validationErrors[sessionID] = []string{"comment_too_long"}
+			validationMutex.Unlock()
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	// Insert comment
 	_, err = database.DB.Exec(`
 		INSERT INTO comments (post_id, user_id, body, created_at)
@@ -513,7 +526,7 @@ func LikedPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 	errorType := r.URL.Query().Get("error")
 
-	data := prepareIndexData(Posts, categories, "", errorType, nil)
+	data := prepareIndexData(Posts, categories, "", errorType, nil, "liked")
 
 	renderPage(w, r, "index", data)
 }

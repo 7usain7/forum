@@ -28,6 +28,20 @@
     </div>
   </header>
 
+  <!-- Notification Popup -->
+  {{if .Data.ValidationErrors}}
+  {{range .Data.ValidationErrors}}
+  {{if eq . "comment_too_long"}}
+  <div class="notification-popup">
+    <div class="notification-content">
+      <span class="notification-icon">⚠️</span>
+      <span class="notification-message">Comment is too long! Maximum 512 characters allowed.</span>
+    </div>
+  </div>
+  {{end}}
+  {{end}}
+  {{end}}
+
   <!-- Sidebar toggle -->
   <input type="checkbox" id="sidebar-toggle" class="sidebar-checkbox">
 
@@ -48,10 +62,10 @@
           <input type="submit" value="Go" class="category-submit">
         </form>
         <nav class="sidebar-nav">
-          <a href="/" class="sidebar_items">Home</a>
+          <a href="/" class="sidebar_items {{if eq .Data.CurrentPage "home"}}active{{end}}">Home</a>
           {{if .Username}}
-          <a href="/Liked_posts" class="sidebar_items">Liked Posts</a>
-          <a href="/Created_posts" class="sidebar_items">Created Posts</a>
+          <a href="/Liked_posts" class="sidebar_items {{if eq .Data.CurrentPage "liked"}}active{{end}}">Liked Posts</a>
+          <a href="/Created_posts" class="sidebar_items {{if eq .Data.CurrentPage "created"}}active{{end}}">Created Posts</a>
           {{end}}
         </nav>
       </div>
@@ -281,7 +295,7 @@
                     {{if $.Username}}
                     <form method="POST" action="/comment" class="comment-form">
                       <input type="hidden" name="post_id" value="{{.ID}}">
-                      <textarea name="body" placeholder="Write a comment..." required></textarea>
+                      <textarea name="body" placeholder="Write a comment..." required maxlength="512"></textarea>
                       <button class="btn ghost" type="submit">Comment</button>
                     </form>
                     {{else}}

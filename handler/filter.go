@@ -84,19 +84,26 @@ func fetchAndFilterPosts(r *http.Request) ([]Post, string, error) {
 }
 
 // prepareIndexData builds the payload passed to the index template.
-func prepareIndexData(posts []Post, categories []Category, filter, errorType string, validationErrorList []string) any {
+func prepareIndexData(posts []Post, categories []Category, filter, errorType string, validationErrorList []string, currentPage ...string) any {
+	page := "home"
+	if len(currentPage) > 0 && currentPage[0] != "" {
+		page = currentPage[0]
+	}
+
 	return struct {
 		Posts            []Post
 		Categories       []Category
 		Filter           string
 		Error            string
 		ValidationErrors []string
+		CurrentPage      string
 	}{
 		Posts:            posts,
 		Categories:       categories,
 		Filter:           filter,
 		Error:            errorType,
 		ValidationErrors: validationErrorList,
+		CurrentPage:      page,
 	}
 }
 
@@ -123,7 +130,7 @@ func CreatedPostsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := prepareIndexData(posts, categories, "", "", nil)
+	data := prepareIndexData(posts, categories, "", "", nil, "created")
 	renderPage(w, r, "index", data)
 }
 
@@ -137,6 +144,8 @@ func errorString(err string) string {
 		return "Title exceeds maximum length of 128 characters."
 	case "body_too_long":
 		return "Body exceeds maximum length of 512 characters."
+	case "comment_too_long":
+		return "Comment exceeds maximum length of 512 characters."
 	default:
 		return ""
 	}
