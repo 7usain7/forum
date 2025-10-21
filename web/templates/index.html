@@ -221,12 +221,15 @@
 
                 <!-- Comments Section -->
                 <!-- Comments Section -->
-                <div class="comments-section">
-                  <div class="comments-header">
+                <div class="comments-toggle-container">
+                  <input type="checkbox" id="comments-toggle-{{.ID}}" class="comments-toggle" hidden>
+                  <label for="comments-toggle-{{.ID}}" class="comments-header">
                     <img src="/static/icons/comments-white.png" alt="Comments">
                     <span class="count">{{len .Comments}}</span>
                     <span>Comments</span>
-                  </div>
+                  </label>
+                  
+                  <div class="comments-section">
 
                   {{if .Comments}}
                   <div class="comments-list">
@@ -285,6 +288,7 @@
                   {{else}}
                   <p class="muted small">Login to comment.</p>
                   {{end}}
+                  </div>
                 </div>
 
                 <!-- End Comments Section -->
