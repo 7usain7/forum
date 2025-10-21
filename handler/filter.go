@@ -122,3 +122,18 @@ func CreatedPostsHandler(w http.ResponseWriter, r *http.Request) {
 	data := prepareIndexData(posts, categories, "", "")
 	renderPage(w, r, "index", data)
 }
+
+func errorString(err string) string {
+	switch err {
+	case "empty":
+		return "Please fill in all fields."
+	case "empty_categories":
+		return "Please select a category."
+	case "title_too_long":
+		return "Title exceeds maximum length of 128 characters."
+	case "body_too_long":
+		return "Body exceeds maximum length of 512 characters."
+	default:
+		return ""
+	}
+}

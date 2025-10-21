@@ -70,6 +70,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errorType := r.URL.Query().Get("error")
+	errorType = errorString(errorType)
 	Data := prepareIndexData(posts, categories, filter, errorType)
 
 	renderPage(w, r, "index", Data)
@@ -84,7 +85,15 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := r.FormValue("title")
+	if len(title) > 128 {
+		http.Redirect(w, r, "/?error=title_too_long#new-post", http.StatusSeeOther)
+		return
+	}
 	body := r.FormValue("body")
+	if len(body) > 512 {
+		http.Redirect(w, r, "/?error=body_too_long#new-post", http.StatusSeeOther)
+		return
+	}
 	if title == "" || body == "" {
 		http.Redirect(w, r, "/?error=empty", http.StatusSeeOther)
 		return
