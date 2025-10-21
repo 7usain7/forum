@@ -77,9 +77,9 @@
           <div id="new-post" class="modal">
             <div class="modal-content">
               <h2>Create a new post</h2>
-                {{if .Data.Error}}
-                <p class="error-message">{{.Data.Error}}</p>
-                {{end}}
+              {{if .Data.Error}}
+              <p class="error-message">{{.Data.Error}}</p>
+              {{end}}
               <form method="POST" action="/" class="create-post-form">
                 <div class="form-group">
                   <input type="text" name="title" placeholder="Title" required maxlength="128">
@@ -220,7 +220,6 @@
                 </div>
 
                 <!-- Comments Section -->
-                <!-- Comments Section -->
                 <div class="comments-toggle-container">
                   <input type="checkbox" id="comments-toggle-{{.ID}}" class="comments-toggle" hidden>
                   <label for="comments-toggle-{{.ID}}" class="comments-header">
@@ -228,66 +227,66 @@
                     <span class="count">{{len .Comments}}</span>
                     <span>Comments</span>
                   </label>
-                  
+
                   <div class="comments-section">
 
-                  {{if .Comments}}
-                  <div class="comments-list">
-                    {{range .Comments}}
-                    <div class="comment">
-                      <div class="comment-author">
-                        {{.Username}}
-                      </div>
-
-                      <div class="comment-body">{{.Body}}</div>
-                      <div class="comment-date muted">{{.CreatedAt}}</div>
-
-                      <!-- Comment Likes/Dislikes -->
-                      <div class="action-row">
-                        {{if $.Username}}
-                        <form method="POST" action="/like" class="action-inline like-form">
-                          <input type="hidden" name="target_type" value="comment">
-                          <input type="hidden" name="target_id" value="{{.ID}}">
-
-                          <button class="icon-btn" type="submit" name="like_type" value="1" title="Upvote comment">
-                            <img src="/static/icons/like.png" alt="Like comment">
-                            <span class="count">{{.LikeCount}}</span>
-                          </button>
-
-                          <button class="icon-btn" type="submit" name="like_type" value="-1" title="Downvote comment">
-                            <img src="/static/icons/dislike.png" alt="Dislike comment">
-                            <span class="count">{{.DislikeCount}}</span>
-                          </button>
-                        </form>
-                        {{else}}
-                        <div class="action-inline muted">
-                          <div class="icon-btn static">
-                            <img src="/static/icons/like.png" alt="Like comment">
-                            <span class="count">{{.LikeCount}}</span>
-                          </div>
-                          <div class="icon-btn static">
-                            <img src="/static/icons/dislike.png" alt="Dislike comment">
-                            <span class="count">{{.DislikeCount}}</span>
-                          </div>
+                    {{if .Comments}}
+                    <div class="comments-list">
+                      {{range .Comments}}
+                      <div class="comment">
+                        <div class="comment-author">
+                          {{.Username}}
                         </div>
-                        {{end}}
-                      </div>
-                    </div>
-                    {{end}}
-                  </div>
-                  {{else}}
-                  <p class="muted">No comments yet.</p>
-                  {{end}}
 
-                  {{if $.Username}}
-                  <form method="POST" action="/comment" class="comment-form">
-                    <input type="hidden" name="post_id" value="{{.ID}}">
-                    <textarea name="body" placeholder="Write a comment..." required></textarea>
-                    <button class="btn ghost" type="submit">Comment</button>
-                  </form>
-                  {{else}}
-                  <p class="muted small">Login to comment.</p>
-                  {{end}}
+                        <div class="comment-body">{{.Body}}</div>
+                        <div class="comment-date muted">{{.CreatedAt}}</div>
+
+                        <!-- Comment Likes/Dislikes -->
+                        <div class="action-row">
+                          {{if $.Username}}
+                          <form method="POST" action="/like" class="action-inline like-form">
+                            <input type="hidden" name="target_type" value="comment">
+                            <input type="hidden" name="target_id" value="{{.ID}}">
+
+                            <button class="icon-btn" type="submit" name="like_type" value="1" title="Upvote comment">
+                              <img src="/static/icons/like.png" alt="Like comment">
+                              <span class="count">{{.LikeCount}}</span>
+                            </button>
+
+                            <button class="icon-btn" type="submit" name="like_type" value="-1" title="Downvote comment">
+                              <img src="/static/icons/dislike.png" alt="Dislike comment">
+                              <span class="count">{{.DislikeCount}}</span>
+                            </button>
+                          </form>
+                          {{else}}
+                          <div class="action-inline muted">
+                            <div class="icon-btn static">
+                              <img src="/static/icons/like.png" alt="Like comment">
+                              <span class="count">{{.LikeCount}}</span>
+                            </div>
+                            <div class="icon-btn static">
+                              <img src="/static/icons/dislike.png" alt="Dislike comment">
+                              <span class="count">{{.DislikeCount}}</span>
+                            </div>
+                          </div>
+                          {{end}}
+                        </div>
+                      </div>
+                      {{end}}
+                    </div>
+                    {{else}}
+                    <p class="muted">No comments yet.</p>
+                    {{end}}
+
+                    {{if $.Username}}
+                    <form method="POST" action="/comment" class="comment-form">
+                      <input type="hidden" name="post_id" value="{{.ID}}">
+                      <textarea name="body" placeholder="Write a comment..." required></textarea>
+                      <button class="btn ghost" type="submit">Comment</button>
+                    </form>
+                    {{else}}
+                    <p class="muted small">Login to comment.</p>
+                    {{end}}
                   </div>
                 </div>
 
