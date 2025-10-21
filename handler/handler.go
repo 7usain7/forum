@@ -70,10 +70,9 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errorType := r.URL.Query().Get("error")
+	Data := prepareIndexData(posts, categories, filter, errorType)
 
-	data := prepareIndexData(posts, categories, filter, errorType)
-
-	renderPage(w, r, "index", data)
+	renderPage(w, r, "index", Data)
 }
 
 // handleCreatePost handles POST requests for creating posts
@@ -101,7 +100,7 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	categories := r.Form["categories"]
 	if len(categories) == 0 {
-		http.Redirect(w, r, "/?error=empty_categories", http.StatusSeeOther)
+		http.Redirect(w, r, "/?error=empty_categories#new-post", http.StatusSeeOther)
 		return
 	}
 

@@ -104,6 +104,13 @@ body {
 }
 
 /* ===== MAIN CONTENT ===== */
+
+.error-message {
+  color: var(--danger);
+  font-weight: 600;
+  margin: 0px 0px;
+}
+
 .main-content {
   grid-area: main;
   background: var(--bg);
