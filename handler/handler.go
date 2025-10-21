@@ -9,8 +9,13 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
+
+// Temporary storage for validation errors
+var validationErrors = make(map[string][]string)
+var validationMutex sync.RWMutex
 
 // renderPage renders a template with common data
 func renderPage(w http.ResponseWriter, r *http.Request, templateName string, data any) {
@@ -73,7 +78,26 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	errorType = errorString(errorType)
 	Data := prepareIndexData(posts, categories, filter, errorType)
 
-	renderPage(w, r, "index", Data)
+	// Get validation errors from temporary storage
+	var validationErrorList []string
+	sessionID := getSessionID(r)
+	if sessionID != "" {
+		validationMutex.RLock()
+		if errors, exists := validationErrors[sessionID]; exists {
+			validationErrorList = errors
+			// Clear the errors after retrieving them
+			validationMutex.RUnlock()
+			validationMutex.Lock()
+			delete(validationErrors, sessionID)
+			validationMutex.Unlock()
+		} else {
+			validationMutex.RUnlock()
+		}
+	}
+
+	data := prepareIndexData(posts, categories, filter, errorType, validationErrorList)
+
+	renderPage(w, r, "index", data)
 }
 
 // handleCreatePost handles POST requests for creating posts
@@ -84,6 +108,7 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+<<<<<<< HEAD
 	title := r.FormValue("title")
 	if len(title) > 128 {
 		http.Redirect(w, r, "/?error=title_too_long#new-post", http.StatusSeeOther)
@@ -100,6 +125,9 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse form to get categories
+=======
+	// Parse form to get all form data
+>>>>>>> dedef62 (Make a backend validation to max title lenght and body (creat post))
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		WriteErrorLog("error.log", "failed to parse form: "+err.Error())
@@ -107,9 +135,43 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	title := strings.TrimSpace(r.FormValue("title"))
+	body := strings.TrimSpace(r.FormValue("body"))
 	categories := r.Form["categories"]
+
+	// Validation with specific error types
+	var validationErrorList []string
+
+	// Check required fields
+	if title == "" {
+		validationErrorList = append(validationErrorList, "title_required")
+	} else if len(title) > 128 {
+		validationErrorList = append(validationErrorList, "title_too_long")
+	}
+
+	if body == "" {
+		validationErrorList = append(validationErrorList, "body_required")
+	} else if len(body) > 512 {
+		validationErrorList = append(validationErrorList, "body_too_long")
+	}
+
 	if len(categories) == 0 {
+<<<<<<< HEAD
 		http.Redirect(w, r, "/?error=empty_categories#new-post", http.StatusSeeOther)
+=======
+		validationErrorList = append(validationErrorList, "categories_required")
+	}
+
+	if len(validationErrorList) > 0 {
+		// Store validation errors temporarily using session ID as key
+		sessionID := getSessionID(r)
+		if sessionID != "" {
+			validationMutex.Lock()
+			validationErrors[sessionID] = validationErrorList
+			validationMutex.Unlock()
+		}
+		http.Redirect(w, r, "/#new-post", http.StatusSeeOther)
+>>>>>>> dedef62 (Make a backend validation to max title lenght and body (creat post))
 		return
 	}
 
@@ -181,6 +243,14 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	renderPage(w, r, "register", nil)
+}
+
+func getSessionID(r *http.Request) string {
+	c, err := r.Cookie("session_id")
+	if err != nil || c.Value == "" {
+		return ""
+	}
+	return c.Value
 }
 
 func CurrentUsername(r *http.Request) string {
@@ -467,7 +537,7 @@ func LikedPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 	errorType := r.URL.Query().Get("error")
 
-	data := prepareIndexData(Posts, categories, "", errorType)
+	data := prepareIndexData(Posts, categories, "", errorType, nil)
 
 	renderPage(w, r, "index", data)
 }

@@ -81,27 +81,59 @@
                 <p class="error-message">{{.Data.Error}}</p>
                 {{end}}
               <form method="POST" action="/" class="create-post-form">
-                <input type="text" name="title" placeholder="Title" required>
-                <textarea name="body" placeholder="Write your post..." required></textarea>
+                <div class="form-group">
+                  <input type="text" name="title" placeholder="Title" required maxlength="100">
+                  {{if .Data.ValidationErrors}}
+                  {{range .Data.ValidationErrors}}
+                  {{if eq . "title_required"}}
+                  <div class="error-message">Title is required</div>
+                  {{else if eq . "title_too_long"}}
+                  <div class="error-message">Title must be 100 characters or less</div>
+                  {{end}}
+                  {{end}}
+                  {{end}}
+                </div>
+
+                <div class="form-group">
+                  <textarea name="body" placeholder="Write your post..." required maxlength="500"></textarea>
+                  {{if .Data.ValidationErrors}}
+                  {{range .Data.ValidationErrors}}
+                  {{if eq . "body_required"}}
+                  <div class="error-message">Body is required</div>
+                  {{else if eq . "body_too_long"}}
+                  <div class="error-message">Body must be 500 characters or less</div>
+                  {{end}}
+                  {{end}}
+                  {{end}}
+                </div>
 
                 <!-- Category chips from database -->
-                <div class="chips">
-                  {{if .Data.Categories}}
-                  {{range .Data.Categories}}
-                  <label class="chip">
-                    <input type="checkbox" name="categories" value="{{.Name}}">
-                    <span>{{.Name}}</span>
-                  </label>
+                <div class="form-group">
+                  <div class="chips">
+                    {{if .Data.Categories}}
+                    {{range .Data.Categories}}
+                    <label class="chip">
+                      <input type="checkbox" name="categories" value="{{.Name}}">
+                      <span>{{.Name}}</span>
+                    </label>
+                    {{end}}
+                    {{else}}
+                    <label class="chip"><input type="checkbox" name="categories"
+                        value="General"><span>General</span></label>
+                    <label class="chip"><input type="checkbox" name="categories"
+                        value="Questions"><span>Questions</span></label>
+                    <label class="chip"><input type="checkbox" name="categories"
+                        value="Gaming"><span>Gaming</span></label>
+                    <label class="chip"><input type="checkbox" name="categories"
+                        value="Programming"><span>Programming</span></label>
+                    {{end}}
+                  </div>
+                  {{if .Data.ValidationErrors}}
+                  {{range .Data.ValidationErrors}}
+                  {{if eq . "categories_required"}}
+                  <div class="error-message">Please select at least one category</div>
                   {{end}}
-                  {{else}}
-                  <label class="chip"><input type="checkbox" name="categories"
-                      value="General"><span>General</span></label>
-                  <label class="chip"><input type="checkbox" name="categories"
-                      value="Questions"><span>Questions</span></label>
-                  <label class="chip"><input type="checkbox" name="categories"
-                      value="Gaming"><span>Gaming</span></label>
-                  <label class="chip"><input type="checkbox" name="categories"
-                      value="Programming"><span>Programming</span></label>
+                  {{end}}
                   {{end}}
                 </div>
 

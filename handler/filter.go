@@ -1,6 +1,8 @@
 package handler
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func filterByCreationDate(order string) ([]Post, error) {
 	posts, err := fetchPostsWithComments("all", "")
@@ -82,17 +84,19 @@ func fetchAndFilterPosts(r *http.Request) ([]Post, string, error) {
 }
 
 // prepareIndexData builds the payload passed to the index template.
-func prepareIndexData(posts []Post, categories []Category, filter, errorType string) any {
+func prepareIndexData(posts []Post, categories []Category, filter, errorType string, validationErrorList []string) any {
 	return struct {
-		Posts      []Post
-		Categories []Category
-		Filter     string
-		Error      string
+		Posts            []Post
+		Categories       []Category
+		Filter           string
+		Error            string
+		ValidationErrors []string
 	}{
-		Posts:      posts,
-		Categories: categories,
-		Filter:     filter,
-		Error:      errorType,
+		Posts:            posts,
+		Categories:       categories,
+		Filter:           filter,
+		Error:            errorType,
+		ValidationErrors: validationErrorList,
 	}
 }
 
@@ -119,7 +123,7 @@ func CreatedPostsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := prepareIndexData(posts, categories, "", "")
+	data := prepareIndexData(posts, categories, "", "", nil)
 	renderPage(w, r, "index", data)
 }
 
