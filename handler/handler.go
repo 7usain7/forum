@@ -14,7 +14,7 @@ import (
 
 // renderPage renders a template with common data
 func renderPage(w http.ResponseWriter, r *http.Request, templateName string, data any) {
-	file := "templates/" + templateName + ".html"
+	file := "web/templates/" + templateName + ".html"
 	tpl, err := template.ParseFiles(file)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

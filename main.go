@@ -23,7 +23,7 @@ func main() {
 	http.HandleFunc("/Created_posts", handler.CreatedPostsHandler)
 
 	// Static files
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
 	log.Println("Listening on :8080 http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
