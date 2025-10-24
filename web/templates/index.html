@@ -28,7 +28,8 @@
     </div>
   </header>
 
-  <!-- Notification Popup -->
+  <!--
+  Notification Popup 
   {{if .Data.ValidationErrors}}
   {{range .Data.ValidationErrors}}
   {{if eq . "comment_too_long"}}
@@ -41,6 +42,9 @@
   {{end}}
   {{end}}
   {{end}}
+
+-->
+
 
   <!-- Sidebar toggle -->
   <input type="checkbox" id="sidebar-toggle" class="sidebar-checkbox">
@@ -62,10 +66,11 @@
           <input type="submit" value="Go" class="category-submit">
         </form>
         <nav class="sidebar-nav">
-          <a href="/" class="sidebar_items {{if eq .Data.CurrentPage "home"}}active{{end}}">Home</a>
+          <a href="/" class="sidebar_items {{if eq .Data.CurrentPage " home"}}active{{end}}">Home</a>
           {{if .Username}}
-          <a href="/Liked_posts" class="sidebar_items {{if eq .Data.CurrentPage "liked"}}active{{end}}">Liked Posts</a>
-          <a href="/Created_posts" class="sidebar_items {{if eq .Data.CurrentPage "created"}}active{{end}}">Created Posts</a>
+          <a href="/Liked_posts" class="sidebar_items {{if eq .Data.CurrentPage " liked"}}active{{end}}">Liked Posts</a>
+          <a href="/Created_posts" class="sidebar_items {{if eq .Data.CurrentPage " created"}}active{{end}}">Created
+            Posts</a>
           {{end}}
         </nav>
       </div>
@@ -295,12 +300,23 @@
                     {{if $.Username}}
                     <form method="POST" action="/comment" class="comment-form">
                       <input type="hidden" name="post_id" value="{{.ID}}">
-                      <textarea name="body" placeholder="Write a comment..." required maxlength="512"></textarea>
+                      <textarea id="commentBody" name="body" placeholder="Write a comment..." required
+                        maxlength="512"></textarea>
+                      <div class="char-counter" id="charCounter">0 / 512</div>
                       <button class="btn ghost" type="submit">Comment</button>
                     </form>
+
+                    <script>
+                      const textarea = document.getElementById('commentBody');
+                      const counter = document.getElementById('charCounter');
+                      textarea.addEventListener('input', () => {
+                        counter.textContent = `${textarea.value.length} / 512`;
+                      });
+                    </script>
                     {{else}}
                     <p class="muted small">Login to comment.</p>
                     {{end}}
+
                   </div>
                 </div>
 
