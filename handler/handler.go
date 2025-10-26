@@ -204,6 +204,10 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 
 // LoginHandler handles login page
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if CurrentUsername(r) != ""{
+		http.Redirect(w,r,"/",http.StatusSeeOther)
+		return
+	}
 	if r.Method == http.MethodPost {
 		LoginPOST(w, r)
 		return
@@ -214,6 +218,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 // RegisterHandler handles user registration
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	if CurrentUsername(r) != ""{
+		http.Redirect(w,r,"/",http.StatusSeeOther)
+		return
+	}
 	if r.Method == http.MethodPost {
 		RegisterPOST(w, r)
 		return
