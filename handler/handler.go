@@ -204,8 +204,8 @@ func handleCreatePost(w http.ResponseWriter, r *http.Request) {
 
 // LoginHandler handles login page
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if CurrentUsername(r) != ""{
-		http.Redirect(w,r,"/",http.StatusSeeOther)
+	if CurrentUsername(r) != "" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	if r.Method == http.MethodPost {
@@ -218,8 +218,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 // RegisterHandler handles user registration
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if CurrentUsername(r) != ""{
-		http.Redirect(w,r,"/",http.StatusSeeOther)
+	if CurrentUsername(r) != "" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	if r.Method == http.MethodPost {
@@ -271,7 +271,7 @@ func CommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get username from session (you likely already have this helper)
+	// Get username from session
 	username := getUsernameFromSession(r)
 	if username == "" {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -282,14 +282,26 @@ func CommentHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := getUserIDbyusername(username)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		renderPage(w, r, "Can't find user", Unauthorized)
+		renderPage(w, r, "error", Unauthorized)
 		return
 	}
 
 	postID := r.FormValue("post_id")
 	body := strings.TrimSpace(r.FormValue("body"))
 
-	if body == "" || postID == "" {
+	
+	if body == "" {
+		sessionID := getSessionID(r)
+		if sessionID != "" {
+			validationMutex.Lock()
+			validationErrors[sessionID] = []string{"comment_empty"}
+			validationMutex.Unlock()
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	if postID == "" {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -313,7 +325,9 @@ func CommentHandler(w http.ResponseWriter, r *http.Request) {
 		VALUES (?, ?, ?, datetime('now'))
 	`, postID, userID, body)
 	if err != nil {
-		http.Error(w, "Failed to save comment: "+err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteErrorLog("error.log", "failed to save comment: "+err.Error())
+		renderPage(w, r, "error", InternalServerError)
 		return
 	}
 

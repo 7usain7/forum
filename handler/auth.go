@@ -22,13 +22,21 @@ func RegisterPOST(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	if email == "" || username == "" || password == "" {
+
+	if strings.TrimSpace(email) == "" || strings.TrimSpace(username) == "" || strings.TrimSpace(password) == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		renderPage(w, r, "error", BadRequest)
+		renderPage(w, r, "register", "Invalid input")
 		return
 	}
 
-	//password hashing
+	// Check password length
+	if len(strings.TrimSpace(password)) < 8 {
+		w.WriteHeader(http.StatusBadRequest)
+		renderPage(w, r, "register", "Password must be at least 8 characters long")
+		return
+	}
+
+	// Password hashing
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -37,6 +45,7 @@ func RegisterPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !IsEmail(email) {
+		w.WriteHeader(http.StatusBadRequest)
 		renderPage(w, r, "register", "Incorrect Email")
 		return
 	}

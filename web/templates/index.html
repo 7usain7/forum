@@ -28,8 +28,7 @@
     </div>
   </header>
 
-  <!--
-  Notification Popup 
+  <!-- Notification Popup -->
   {{if .Data.ValidationErrors}}
   {{range .Data.ValidationErrors}}
   {{if eq . "comment_too_long"}}
@@ -39,11 +38,16 @@
       <span class="notification-message">Comment is too long! Maximum 512 characters allowed.</span>
     </div>
   </div>
+  {{else if eq . "comment_empty"}}
+  <div class="notification-popup">
+    <div class="notification-content">
+      <span class="notification-icon">⚠️</span>
+      <span class="notification-message">Comment cannot be empty!</span>
+    </div>
+  </div>
   {{end}}
   {{end}}
   {{end}}
-
--->
 
 
   <!-- Sidebar toggle -->
