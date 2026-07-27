@@ -122,3 +122,7 @@ This project demonstrates understanding of:
 ---
 
 For questions or support, please open an issue in the project repository.
+
+## License
+
+This project is proprietary. The code is publicly visible for portfolio and viewing purposes only. No unauthorized copying, modification, or distribution is permitted. See [LICENSE](LICENSE) for details.
